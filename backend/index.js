@@ -86,6 +86,23 @@ app.post('/productos', upload.single('imagen'), async (req, res) =>
     }
 });
 
+// --- NUEVA RUTA: OBTENER TODOS LOS PRODUCTOS ---
+app.get('/productos', async (req, res) =>
+{
+    try
+    {
+        // Pedimos todo a la base de datos
+        const allProducts = await pool.query('SELECT * FROM productos ORDER BY id DESC');
+
+        // Se lo mandamos a React
+        res.json(allProducts.rows);
+    } catch(err)
+    {
+        console.error(err.message);
+        res.status(500).send("Error al obtener productos");
+    }
+});
+
 // INICIAR EL SERVIDOR
 app.listen(PORT, () =>
 {
