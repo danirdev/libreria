@@ -21,9 +21,9 @@ function Ventas ()
 
     // CONFIGURACIÓN DE IMPRESIÓN
     const handlePrint = useReactToPrint({
-        content: () => ticketRef.current,
+        contentRef: ticketRef, // <--- CAMBIO AQUÍ: Usamos contentRef y pasamos la variable directa
         documentTitle: `Ticket-${ultimaVenta?.id}`,
-        onAfterPrint: () => cerrarModal() // Opcional: cerrar al terminar de imprimir
+        onAfterPrint: () => cerrarModal()
     });
 
     const buscarProducto = async (e) =>
