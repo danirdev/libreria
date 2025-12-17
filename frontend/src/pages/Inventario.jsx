@@ -1,6 +1,6 @@
 import {useState, useEffect, useRef} from 'react';
 import api from '../api';
-import {Package, Search, Plus, Trash2, Edit2, AlertCircle, Barcode, DollarSign, Image as ImageIcon, X, Save} from 'lucide-react';
+import {Package, Search, Plus, Trash2, Edit2, AlertCircle, Barcode, DollarSign, Image as ImageIcon, X, Save, Tag} from 'lucide-react';
 
 function Inventario ()
 {
@@ -9,10 +9,10 @@ function Inventario ()
     const [loading, setLoading] = useState(false);
     const fileInputRef = useRef(null);
 
-    // Estado para Edición
+    // Estado para saber si estamos editando (null = creando)
     const [editId, setEditId] = useState(null);
 
-    // Formulario Completo (Coincide con tu Backend)
+    // Formulario completo (Coincide con tu Backend)
     const [formData, setFormData] = useState({
         codigo_barras: '',
         nombre: '',
@@ -21,7 +21,7 @@ function Inventario ()
         stock_actual: '',
         categoria: '',
         es_servicio: false,
-        imagen: null // Aquí guardaremos el archivo real
+        imagen: null // Aquí se guarda el archivo real
     });
 
     useEffect(() => {cargarProductos();}, []);
@@ -35,7 +35,7 @@ function Inventario ()
         } catch(err) {console.error("Error cargando productos:", err);}
     };
 
-    // Maneja cambios en inputs de texto/número
+    // Maneja los inputs de texto
     const handleChange = (e) =>
     {
         const {name, value, type, checked} = e.target;
@@ -45,7 +45,7 @@ function Inventario ()
         }));
     };
 
-    // Maneja selección de imagen
+    // Maneja la selección de la imagen
     const handleFileChange = (e) =>
     {
         if(e.target.files && e.target.files[0])
@@ -88,7 +88,7 @@ function Inventario ()
 
         try
         {
-            // 1. Crear FormData para enviar archivo + datos
+            // Usamos FormData porque vamos a enviar un archivo (imagen)
             const data = new FormData();
             data.append('codigo_barras', formData.codigo_barras);
             data.append('nombre', formData.nombre);
@@ -100,26 +100,27 @@ function Inventario ()
 
             if(formData.imagen)
             {
-                data.append('imagen', formData.imagen); // 'imagen' debe coincidir con upload.single('imagen') del backend
+                data.append('imagen', formData.imagen); // Debe coincidir con upload.single('imagen') del backend
             }
 
-            // 2. Enviar al Backend (POST o PUT)
             if(editId)
             {
+                // ACTUALIZAR (PUT)
                 await api.put(`/productos/${editId}`, data, {
                     headers: {'Content-Type': 'multipart/form-data'}
                 });
+                alert("Producto actualizado correctamente ✨");
             } else
             {
+                // CREAR (POST)
                 await api.post('/productos', data, {
                     headers: {'Content-Type': 'multipart/form-data'}
                 });
+                alert("Producto creado correctamente ✅");
             }
 
-            // 3. Limpiar y recargar
             cancelarEdicion();
             cargarProductos();
-            alert(editId ? "Producto actualizado correctamente" : "Producto creado correctamente");
 
         } catch(err)
         {
@@ -140,7 +141,7 @@ function Inventario ()
             cargarProductos();
         } catch(err)
         {
-            alert("No se pudo eliminar (quizás tiene ventas asociadas).");
+            alert("No se pudo eliminar (es posible que tenga ventas registradas).");
         }
     };
 
@@ -150,7 +151,7 @@ function Inventario ()
     );
 
     return (
-        <div className="space-y-6 animate-fade-in font-sans pb-10">
+        <div className="space-y-6 animate-fade-in font-sans pb-12">
 
             {/* --- FORMULARIO DE GESTIÓN --- */}
             <div className={`p-6 rounded-2xl shadow-sm border transition-colors ${editId ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-100'}`}>
@@ -163,12 +164,12 @@ function Inventario ()
                             <h1 className={`text-xl font-bold ${editId ? 'text-blue-800' : 'text-gray-800'}`}>
                                 {editId ? 'Editando Producto' : 'Nuevo Producto'}
                             </h1>
-                            <p className="text-sm text-gray-500">Completa los detalles del inventario</p>
+                            <p className="text-sm text-gray-500">Gestión detallada del inventario</p>
                         </div>
                     </div>
                     {editId && (
                         <button onClick={cancelarEdicion} className="text-sm text-red-600 hover:bg-red-50 px-3 py-1 rounded-lg transition-colors flex items-center gap-1">
-                            <X size={16} /> Cancelar Edición
+                            <X size={16} /> Cancelar
                         </button>
                     )}
                 </div>
@@ -176,8 +177,8 @@ function Inventario ()
                 <form onSubmit={guardarProducto} className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
 
                     {/* Código de Barras */}
-                    <div className="md:col-span-1">
-                        <label className="text-xs font-bold text-gray-500 uppercase ml-1">Código</label>
+                    <div className="md:col-span-2">
+                        <label className="text-xs font-bold text-gray-500 uppercase ml-1">Código de Barras</label>
                         <div className="relative">
                             <Barcode size={16} className="absolute left-3 top-3 text-gray-400" />
                             <input
@@ -189,7 +190,7 @@ function Inventario ()
                     </div>
 
                     {/* Nombre */}
-                    <div className="md:col-span-3">
+                    <div className="md:col-span-4">
                         <label className="text-xs font-bold text-gray-500 uppercase ml-1">Nombre del Producto</label>
                         <input
                             type="text" name="nombre" placeholder="Ej: Cuaderno Espiral A4" required
@@ -201,11 +202,14 @@ function Inventario ()
                     {/* Categoría */}
                     <div className="md:col-span-2">
                         <label className="text-xs font-bold text-gray-500 uppercase ml-1">Categoría</label>
-                        <input
-                            type="text" name="categoria" placeholder="Ej: Librería, Oficina..."
-                            value={formData.categoria} onChange={handleChange}
-                            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
-                        />
+                        <div className="relative">
+                            <Tag size={16} className="absolute left-3 top-3 text-gray-400" />
+                            <input
+                                type="text" name="categoria" placeholder="Ej: Oficina, Escolar..."
+                                value={formData.categoria} onChange={handleChange}
+                                className="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
+                            />
+                        </div>
                     </div>
 
                     {/* Costo */}
@@ -214,7 +218,7 @@ function Inventario ()
                         <div className="relative">
                             <DollarSign size={14} className="absolute left-3 top-3 text-gray-400" />
                             <input
-                                type="number" name="precio_costo" placeholder="0.00" required step="0.01"
+                                type="number" name="precio_costo" placeholder="0.00" step="0.01"
                                 value={formData.precio_costo} onChange={handleChange}
                                 className="w-full pl-7 pr-3 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
                             />
@@ -235,7 +239,7 @@ function Inventario ()
                     </div>
 
                     {/* Stock */}
-                    <div className="md:col-span-1">
+                    <div className="md:col-span-2">
                         <label className="text-xs font-bold text-gray-500 uppercase ml-1">Stock</label>
                         <input
                             type="number" name="stock_actual" placeholder="0" required
@@ -245,26 +249,26 @@ function Inventario ()
                     </div>
 
                     {/* Imagen Input */}
-                    <div className="md:col-span-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase ml-1">Imagen del Producto</label>
+                    <div className="md:col-span-4">
+                        <label className="text-xs font-bold text-gray-500 uppercase ml-1">Imagen (Opcional)</label>
                         <div className="relative">
                             <ImageIcon size={16} className="absolute left-3 top-3 text-gray-400" />
                             <input
                                 type="file" ref={fileInputRef} accept="image/*" onChange={handleFileChange}
-                                className="w-full pl-9 pr-3 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-500 file:mr-4 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                                className="w-full pl-9 pr-3 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-500 file:mr-4 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 cursor-pointer"
                             />
                         </div>
                     </div>
 
                     {/* Botón Guardar */}
-                    <div className="md:col-span-1">
+                    <div className="md:col-span-2">
                         <button
                             type="submit"
                             disabled={loading}
                             className={`w-full font-bold py-2.5 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 h-[42px] text-white
                         ${editId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-primary-600 hover:bg-primary-700'}`}
                         >
-                            {loading ? '...' : (editId ? <><Save size={18} /> Actualizar</> : <><Plus size={20} /> Agregar</>)}
+                            {loading ? 'Guardando...' : (editId ? <><Save size={18} /> Actualizar Producto</> : <><Plus size={20} /> Agregar al Inventario</>)}
                         </button>
                     </div>
                 </form>
@@ -279,14 +283,14 @@ function Inventario ()
                         <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                         <input
                             type="text"
-                            placeholder="Buscar por nombre o código de barras..."
+                            placeholder="Buscar por nombre, código..."
                             value={busqueda}
                             onChange={(e) => setBusqueda(e.target.value)}
                             className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-primary-400"
                         />
                     </div>
                     <div className="text-xs font-bold text-gray-400 uppercase whitespace-nowrap">
-                        {productosFiltrados.length} Productos
+                        {productosFiltrados.length} Items
                     </div>
                 </div>
 
