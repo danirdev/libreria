@@ -1,87 +1,150 @@
 import {useState, useEffect} from 'react';
 import api from '../api';
-import {UserPlus, DollarSign} from 'lucide-react';
+import {Users, Search, UserPlus, DollarSign, Phone, User, X} from 'lucide-react';
 
 function Clientes ()
 {
     const [clientes, setClientes] = useState([]);
+    const [busqueda, setBusqueda] = useState('');
+
+    // Estados para formulario
     const [nuevoNombre, setNuevoNombre] = useState('');
     const [nuevoTel, setNuevoTel] = useState('');
+    const [mostrarForm, setMostrarForm] = useState(false);
 
     useEffect(() => {cargarClientes();}, []);
 
     const cargarClientes = async () =>
     {
-        const res = await api.get('/clientes');
-        setClientes(res.data);
+        try
+        {
+            const res = await api.get('/clientes');
+            setClientes(res.data);
+        } catch(err) {console.error(err);}
     };
 
     const crearCliente = async (e) =>
     {
         e.preventDefault();
-        await api.post('/clientes', {nombre: nuevoNombre, telefono: nuevoTel});
-        setNuevoNombre(''); setNuevoTel('');
-        cargarClientes();
+        try
+        {
+            await api.post('/clientes', {nombre: nuevoNombre, telefono: nuevoTel});
+            setNuevoNombre(''); setNuevoTel(''); setMostrarForm(false);
+            cargarClientes();
+        } catch(err) {alert("Error al crear cliente");}
     };
 
     const registrarPago = async (cliente) =>
     {
-        const monto = prompt(`El cliente debe $${cliente.saldo_deudor}. ¿Cuánto paga hoy?`);
+        const monto = prompt(`Deuda actual: $${cliente.saldo_deudor}. ¿Cuánto paga?`);
         if(!monto) return;
-
         try
         {
             await api.post('/clientes/pagar', {id_cliente: cliente.id, monto: parseFloat(monto)});
-            alert("Pago registrado 💰");
             cargarClientes();
-        } catch(err) {alert("Error al pagar");}
+        } catch(err) {alert("Error al registrar pago");}
     };
 
-    return (
-        <div style={{padding: '20px', maxWidth: '800px', margin: '0 auto'}}>
-            <h1>📒 Clientes y Cuentas Corrientes</h1>
+    const clientesFiltrados = clientes.filter(c => c.nombre.toLowerCase().includes(busqueda.toLowerCase()));
 
-            {/* FORMULARIO */}
-            <div style={{background: '#e3f2fd', padding: '20px', borderRadius: '8px', marginBottom: '20px'}}>
-                <h3>Nuevo Cliente</h3>
-                <form onSubmit={crearCliente} style={{display: 'flex', gap: '10px'}}>
-                    <input type="text" placeholder="Nombre" value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} required style={{padding: '8px', flex: 1}} />
-                    <input type="text" placeholder="Teléfono" value={nuevoTel} onChange={e => setNuevoTel(e.target.value)} style={{padding: '8px'}} />
-                    <button type="submit" style={{background: '#007bff', color: 'white', border: 'none', padding: '0 20px', cursor: 'pointer'}}>
-                        <UserPlus size={18} /> AGREGAR
-                    </button>
-                </form>
+    return (
+        <div className="space-y-6 animate-fade-in">
+
+            {/* CABECERA */}
+            <div className="flex flex-col md:flex-row justify-between items-end gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div className="flex items-center gap-4">
+                    <div className="bg-primary-100 p-3 rounded-xl text-primary-600">
+                        <Users size={28} />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-800">Clientes</h1>
+                        <p className="text-gray-500">Gestión de cuentas corrientes</p>
+                    </div>
+                </div>
+                <button
+                    onClick={() => setMostrarForm(!mostrarForm)}
+                    className="bg-primary-600 hover:bg-primary-700 text-white font-bold py-2.5 px-6 rounded-xl shadow-md transition-all flex items-center gap-2"
+                >
+                    {mostrarForm ? <X size={20} /> : <UserPlus size={20} />}
+                    {mostrarForm ? 'Cancelar' : 'Nuevo Cliente'}
+                </button>
             </div>
 
-            {/* LISTA */}
-            <table style={{width: '100%', borderCollapse: 'collapse', background: 'white', boxShadow: '0 2px 5px rgba(0,0,0,0.1)'}}>
-                <thead>
-                    <tr style={{background: '#333', color: 'white'}}>
-                        <th style={{padding: '10px', textAlign: 'left'}}>Nombre</th>
-                        <th style={{padding: '10px', textAlign: 'left'}}>Teléfono</th>
-                        <th style={{padding: '10px', textAlign: 'left'}}>Deuda</th>
-                        <th style={{padding: '10px', textAlign: 'center'}}>Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {clientes.map(c => (
-                        <tr key={c.id} style={{borderBottom: '1px solid #eee'}}>
-                            <td style={{padding: '10px'}}>{c.nombre}</td>
-                            <td>{c.telefono}</td>
-                            <td style={{fontWeight: 'bold', color: c.saldo_deudor > 0 ? 'red' : 'green'}}>
-                                ${c.saldo_deudor}
-                            </td>
-                            <td style={{textAlign: 'center'}}>
-                                {c.saldo_deudor > 0 && (
-                                    <button onClick={() => registrarPago(c)} style={{background: '#28a745', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer'}}>
-                                        <DollarSign size={16} /> PAGAR
-                                    </button>
+            {/* FORMULARIO DESPLEGABLE */}
+            {mostrarForm && (
+                <div className="bg-primary-50 border border-primary-100 p-6 rounded-2xl animate-slide-up">
+                    <form onSubmit={crearCliente} className="flex flex-col md:flex-row gap-4 items-end">
+                        <div className="flex-1 w-full">
+                            <label className="text-xs font-bold text-primary-800 uppercase ml-1">Nombre Completo</label>
+                            <input type="text" placeholder="Ej: Juan Pérez" value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} required
+                                className="w-full p-3 rounded-xl border border-primary-200 focus:ring-2 focus:ring-primary-400 outline-none" />
+                        </div>
+                        <div className="flex-1 w-full">
+                            <label className="text-xs font-bold text-primary-800 uppercase ml-1">Teléfono</label>
+                            <input type="text" placeholder="Ej: 388-1234567" value={nuevoTel} onChange={e => setNuevoTel(e.target.value)}
+                                className="w-full p-3 rounded-xl border border-primary-200 focus:ring-2 focus:ring-primary-400 outline-none" />
+                        </div>
+                        <button type="submit" className="bg-primary-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-primary-700 transition-all shadow-md">
+                            Guardar
+                        </button>
+                    </form>
+                </div>
+            )}
+
+            {/* LISTA DE TARJETAS */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {/* Buscador */}
+                <div className="col-span-full mb-2">
+                    <div className="relative">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Buscar cliente..."
+                            value={busqueda}
+                            onChange={(e) => setBusqueda(e.target.value)}
+                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-primary-400 outline-none text-lg"
+                        />
+                    </div>
+                </div>
+
+                {clientesFiltrados.map(c => (
+                    <div key={c.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all group flex flex-col justify-between">
+                        <div>
+                            <div className="flex justify-between items-start mb-3">
+                                <div className="bg-gray-100 p-2 rounded-full text-gray-500 group-hover:bg-primary-100 group-hover:text-primary-600 transition-colors">
+                                    <User size={20} />
+                                </div>
+                                {parseFloat(c.saldo_deudor) > 0 && (
+                                    <span className="bg-red-50 text-red-600 text-xs font-bold px-2 py-1 rounded-full border border-red-100">
+                                        Debe Dinero
+                                    </span>
                                 )}
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+                            </div>
+                            <h3 className="font-bold text-lg text-gray-800">{c.nombre}</h3>
+                            <div className="flex items-center gap-2 text-gray-400 text-sm mt-1">
+                                <Phone size={14} /> {c.telefono || 'Sin teléfono'}
+                            </div>
+                        </div>
+
+                        <div className="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
+                            <div>
+                                <p className="text-xs text-gray-400 font-bold uppercase">Saldo Actual</p>
+                                <p className={`text-xl font-black ${parseFloat(c.saldo_deudor) > 0 ? 'text-red-500' : 'text-green-500'}`}>
+                                    ${c.saldo_deudor}
+                                </p>
+                            </div>
+                            {parseFloat(c.saldo_deudor) > 0 && (
+                                <button
+                                    onClick={() => registrarPago(c)}
+                                    className="bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 font-bold py-2 px-4 rounded-lg text-sm transition-all flex items-center gap-1"
+                                >
+                                    <DollarSign size={16} /> Pagar
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }

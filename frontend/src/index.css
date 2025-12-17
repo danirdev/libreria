@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+@theme {
+    /* TU COLOR DE MARCA (#335c82) - Tailwind v4 detectará las variantes */
+    --color-primary-50: #f2f7fb;
+    --color-primary-100: #e3eff6;
+    --color-primary-200: #bfdbe9;
+    --color-primary-300: #8cbdde;
+    --color-primary-400: #529ccf;
+    --color-primary-500: #335c82;
+    /* <-- TU COLOR PRINCIPAL */
+    --color-primary-600: #264a6b;
+    --color-primary-700: #1f3c57;
+    --color-primary-800: #1a3248;
+    --color-primary-900: #182b3d;
+    --color-primary-950: #0f1c29;
+
+    /* TUS ANIMACIONES PERSONALIZADAS */
+    --animate-float: float 6s ease-in-out infinite;
+    --animate-fade-in: fadeIn 0.8s ease-out forwards;
+    --animate-slide-up: slideUp 0.5s ease-out forwards;
+
+    @keyframes float {
+
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-20px);
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
+
+/* ESTILOS BASE */
+@layer base {
+    body {
+        background-color: #f9fafb;
+        color: #1f2937;
+        -webkit-font-smoothing: antialiased;
+    }
+}
