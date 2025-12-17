@@ -1,5 +1,5 @@
 import {useState, useEffect} from 'react';
-import axios from 'axios';
+import api from '../api';
 import {UserPlus, DollarSign} from 'lucide-react';
 
 function Clientes ()
@@ -12,14 +12,14 @@ function Clientes ()
 
     const cargarClientes = async () =>
     {
-        const res = await axios.get('http://localhost:4000/clientes');
+        const res = await api.get('/clientes');
         setClientes(res.data);
     };
 
     const crearCliente = async (e) =>
     {
         e.preventDefault();
-        await axios.post('http://localhost:4000/clientes', {nombre: nuevoNombre, telefono: nuevoTel});
+        await api.post('/clientes', {nombre: nuevoNombre, telefono: nuevoTel});
         setNuevoNombre(''); setNuevoTel('');
         cargarClientes();
     };
@@ -31,7 +31,7 @@ function Clientes ()
 
         try
         {
-            await axios.post('http://localhost:4000/clientes/pagar', {id_cliente: cliente.id, monto: parseFloat(monto)});
+            await api.post('/clientes/pagar', {id_cliente: cliente.id, monto: parseFloat(monto)});
             alert("Pago registrado 💰");
             cargarClientes();
         } catch(err) {alert("Error al pagar");}

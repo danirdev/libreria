@@ -1,5 +1,5 @@
 import {useState, useEffect, useRef} from 'react';
-import axios from 'axios';
+import api from '../api';
 import {useReactToPrint} from 'react-to-print';
 import TicketImprimible from '../components/TicketImprimible';
 import {CheckCircle, Printer, X} from 'lucide-react';
@@ -35,7 +35,7 @@ function Ventas ()
     {
         try
         {
-            const res = await axios.get('http://localhost:4000/clientes');
+            const res = await api.get('/clientes');
             setListaClientes(res.data);
         } catch(err) {console.error("Error cargando clientes");}
     };
@@ -56,7 +56,7 @@ function Ventas ()
         {
             try
             {
-                const res = await axios.get('http://localhost:4000/productos/buscar/' + term);
+                const res = await api.get('/productos/buscar/' + term);
                 setResultados(res.data);
             } catch(err) {console.error(err);}
         } else
@@ -93,7 +93,7 @@ function Ventas ()
 
         try
         {
-            const res = await axios.post('http://localhost:4000/ventas', {
+            const res = await api.post('/ventas', {
                 total: total,
                 items: carrito,
                 metodo_pago: metodoPago,

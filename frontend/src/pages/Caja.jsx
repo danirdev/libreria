@@ -1,5 +1,5 @@
 import {useState, useEffect} from 'react';
-import axios from 'axios';
+import api from '../api';
 
 function Caja ()
 {
@@ -16,7 +16,7 @@ function Caja ()
     {
         try
         {
-            const res = await axios.get('http://localhost:4000/caja/estado');
+            const res = await api.get('/caja/estado');
             setEstado(res.data.estado);
             if(res.data.datos) setDatosCaja(res.data.datos);
         } catch(error)
@@ -31,7 +31,7 @@ function Caja ()
         if(!inputMonto) return alert("Ingresa con cuánto dinero empiezas");
         try
         {
-            await axios.post('http://localhost:4000/caja/abrir', {monto_inicial: inputMonto});
+            await api.post('/caja/abrir', {monto_inicial: inputMonto});
             consultarCaja(); // Recargar para ver la pantalla verde
         } catch(error) {alert("Error al abrir");}
     };
@@ -43,7 +43,7 @@ function Caja ()
 
         try
         {
-            await axios.post('http://localhost:4000/caja/cerrar', {
+            await api.post('/caja/cerrar', {
                 id_caja: datosCaja.id,
                 monto_final_real: real
             });

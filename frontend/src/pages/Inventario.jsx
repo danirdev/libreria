@@ -1,5 +1,5 @@
 import {useState, useEffect} from 'react';
-import axios from 'axios';
+import api from '../api';
 import {Pencil, Trash2, X, Save} from 'lucide-react'; // Iconos bonitos
 
 function Inventario ()
@@ -28,7 +28,7 @@ function Inventario ()
     {
         try
         {
-            const res = await axios.get('http://localhost:4000/productos');
+            const res = await api.get('/productos');
             setProductos(res.data);
         } catch(error) {console.error(error);}
     };
@@ -64,7 +64,7 @@ function Inventario ()
         if(!confirm('¿Seguro que quieres borrar este producto?')) return;
         try
         {
-            await axios.delete(`http://localhost:4000/productos/${id}`);
+            await api.delete(`/productos/${id}`);
             cargarProductos();
             alert('Eliminado correctamente');
         } catch(error)
@@ -92,12 +92,12 @@ function Inventario ()
             if(modoEdicion)
             {
                 // ACTUALIZAR (PUT)
-                await axios.put(`http://localhost:4000/productos/${idEdicion}`, data);
+                await api.put(`/productos/${idEdicion}`, data);
                 alert('¡Producto actualizado! ✨');
             } else
             {
                 // CREAR (POST)
-                await axios.post('http://localhost:4000/productos', data);
+                await api.post('/productos', data);
                 alert('¡Producto creado! 🎉');
             }
 

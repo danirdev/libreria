@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import axios from 'axios';
+import api from '../api';
 
 function Login ({onLogin})
 {
@@ -12,7 +12,7 @@ function Login ({onLogin})
         e.preventDefault();
         try
         {
-            const res = await axios.post('http://localhost:4000/auth/login', {email, password});
+            const res = await api.post('/auth/login', {email, password});
 
             // Si el login es exitoso:
             // 1. Guardamos el token en la memoria del navegador (localStorage)

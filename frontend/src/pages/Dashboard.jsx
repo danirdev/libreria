@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import axios from 'axios';
+import api from '../api';
 import {TrendingUp, Calendar, AlertTriangle, Award} from 'lucide-react';
 
 function Dashboard ()
@@ -17,13 +17,13 @@ function Dashboard ()
     {
         try
         {
-            const res1 = await axios.get('http://localhost:4000/stats/resumen');
+            const res1 = await api.get('/stats/resumen');
             setResumen(res1.data);
 
-            const res2 = await axios.get('http://localhost:4000/stats/top-productos');
+            const res2 = await api.get('/stats/top-productos');
             setTopProductos(res2.data);
 
-            const res3 = await axios.get('http://localhost:4000/stats/ventas-semana');
+            const res3 = await api.get('/stats/ventas-semana');
             setVentasSemana(res3.data);
         } catch(error) {console.error("Error cargando stats", error);}
     };
