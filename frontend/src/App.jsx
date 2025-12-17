@@ -60,7 +60,7 @@ function App ()
             <DollarSign className="text-white" size={24} />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-800 tracking-tight">Librería<span className="text-primary-600">POS</span></h1>
+            <h1 className="text-xl font-bold text-gray-800 tracking-tight">Fotocopias <span className="text-primary-600">RAMOS</span></h1>
             <p className="text-xs text-gray-400 font-medium">Panel de Control</p>
           </div>
           <button onClick={() => setSidebarOpen(false)} className="md:hidden ml-auto text-gray-400">

@@ -37,7 +37,7 @@ function Login ({onLogin})
                     <div className="bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
                         <BookOpen size={32} className="text-white" />
                     </div>
-                    <h2 className="text-2xl font-bold text-white">Librería POS</h2>
+                    <h2 className="text-2xl font-bold text-white">Fotocopias Ramos</h2>
                     <p className="text-primary-100 text-sm mt-1">Sistema de Gestión</p>
                 </div>
 
