@@ -15,6 +15,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/productos', require('./routes/productos.routes'));
 app.use('/ventas', require('./routes/ventas.routes'));
 app.use('/caja', require('./routes/caja.routes'));
+app.use('/stats', require('./routes/stats.routes'));
 
 // TEST
 app.get('/test-db', async (req, res) =>
