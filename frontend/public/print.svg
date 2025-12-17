@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg version="1.1" id="Uploaded to svgrepo.com" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+	 width="800px" height="800px" viewBox="0 0 32 32" xml:space="preserve">
+<style type="text/css">
+	.isometric_zeven{fill:#FF7344;}
+	.isometric_acht{fill:#F05A28;}
+	.isometric_negen{fill:#BE1E2D;}
+	.isometric_tien{fill:#7BD6C4;}
+	.isometric_elf{fill:#72C0AB;}
+	.isometric_twaalf{fill:#569080;}
+	.isometric_dertien{fill:#225B49;}
+	.st0{fill:#F28103;}
+	.st1{fill:#F29227;}
+	.st2{fill:#F8F7C5;}
+	.st3{fill:#F5DF89;}
+	.st4{fill:#AD9A74;}
+	.st5{fill:none;}
+	.st6{fill:#BE1E2D;}
+	.st7{fill:#F2D76C;}
+	.st8{fill:#72C0AB;}
+	.st9{fill:#569080;}
+</style>
+<g>
+	<polygon class="isometric_tien" points="18.191,13.5 18.191,11.873 10.778,7.208 3,11.608 11,16.12 11,20.248 25.547,11.754 
+		25.547,9.222 	"/>
+	<path class="isometric_elf" d="M12.655,23.512L11,24.468v-3.376l14.547-8.493v3.376l-0.763,0.441l-1.479-0.852l-10.65,6.288V23.512
+		z"/>
+	<polygon class="isometric_dertien" points="23.305,15.563 12.655,21.851 12.655,23.539 18.191,26.849 29,20.532 29,18.844 
+		28.991,18.838 	"/>
+	<path class="isometric_negen" d="M17.902,22.796l5.334-2.964l0.993,0.595l-5.334,2.964L17.902,22.796z M16.967,22.236l5.334-2.964
+		l-0.935-0.56l-5.334,2.964L16.967,22.236z M20.431,18.151l-0.777-0.466l-5.218,3.034l0.66,0.396L20.431,18.151z"/>
+	<path class="isometric_zeven" d="M26.364,20.827L20.4,17.252l-0.745,0.433l0.777,0.466l-5.334,2.964l-0.66-0.396l-0.484,0.282
+		l5.725,3.288v0.253L26.364,20.827z M16.032,21.675l5.334-2.964l0.935,0.56l-5.334,2.964L16.032,21.675z M18.895,23.391
+		l-0.993-0.595l5.334-2.964l0.993,0.595L18.895,23.391z"/>
+	<polygon class="isometric_acht" points="19.678,24.824 26.366,21.1 26.364,20.827 19.678,24.542 	"/>
+	<path class="isometric_twaalf" d="M11,20.248l14.547-8.493v0.844L11,21.092V20.248z M25.547,16.854v-0.88l-0.763,0.441
+		L25.547,16.854z M12.655,23.539v-0.027L11,24.468V27l3.702-2.237L12.655,23.539z M28.991,18.838l-5.686-3.275l-1.476,0.858
+		l5.721,3.266L28.991,18.838z M19.678,24.29l-5.725-3.288l-1.298,0.849l5.572,3.288L19.678,24.29z"/>
+	<path class="isometric_dertien" d="M18.191,11.873c0,0.227-0.026,1.423,0,1.627l7.356-4.278l0,0L18.263,4.5l-6.12,3.535
+		L18.191,11.873z"/>
+	<path class="isometric_twaalf" d="M11,16.12v4.128l-8-4.512v-4.128L11,16.12z M3,16.58v3.376l8,4.512v-3.376L3,16.58z"/>
+	<path class="isometric_dertien" d="M11,27l-8-4.512v-2.532l8,4.512V27z M11,20.248l-8-4.512v0.844l8,4.512V20.248z"/>
+	<path class="isometric_tien" d="M19.678,24.295l0,1.681l-1.451,0.838v-1.676l0,0L19.678,24.295z M27.549,19.687v0.006v1.687
+		L29,20.532v-1.688L27.549,19.687z"/>
+</g>
+</svg>

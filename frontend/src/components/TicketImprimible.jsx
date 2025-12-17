@@ -1,52 +1,46 @@
 import React from 'react';
 
-// 1. IMPORTANTE: Usamos React.forwardRef aquí para permitir que el componente reciba la referencia
-const TicketImprimible = React.forwardRef((props, ref) =>
+const TicketImprimible = React.forwardRef(({venta, items, total, fecha}, ref) =>
 {
-
-    // Extraemos los datos de las props
-    const {venta, items, total, fecha} = props;
-
     return (
-        // 2. IMPORTANTE: Asignamos ref={ref} al div principal. 
-        // Sin esto, la impresora no sabe qué dibujar.
-        <div ref={ref} style={{
-            padding: '20px',
-            width: '300px',
-            fontFamily: 'monospace',
-            fontSize: '12px',
-            color: 'black',
-            backgroundColor: 'white' // Fondo blanco asegurado
-        }}>
+        <div ref={ref} className="p-6 w-[300px] font-mono text-xs text-black bg-white">
 
-            {/* Cabecera del Ticket */}
-            <div style={{textAlign: 'center', marginBottom: '10px'}}>
-                <h2 style={{margin: 0, fontSize: '16px'}}>LIBRERÍA</h2>
-                <p style={{margin: '2px 0'}}>Av. Siempre Viva 123</p>
-                <p style={{margin: '2px 0'}}>--------------------------------</p>
-                <p style={{margin: '2px 0'}}>Fecha: {fecha}</p>
-                <p style={{margin: '2px 0'}}>Ticket #: {venta ? venta.id : '---'}</p>
+            {/* Cabecera */}
+            <div className="text-center mb-4">
+                <h2 className="text-base font-bold uppercase tracking-wider mb-1">Fotocopias Ramos</h2>
+                <p className="text-gray-600">Av. Siempre Viva 123</p>
+                <p>Tel: (388) 123-4567</p>
+
+                <div className="my-3 border-b border-dashed border-black"></div>
+
+                <div className="flex justify-between text-[10px] uppercase">
+                    <span>Fecha: {fecha?.split(',')[0]}</span>
+                    <span>Hora: {fecha?.split(',')[1]}</span>
+                </div>
+                <p className="text-left text-[10px] uppercase mt-1">
+                    Ticket #: <span className="font-bold">{venta?.id || '---'}</span>
+                </p>
             </div>
 
             {/* Tabla de Productos */}
-            <table style={{width: '100%', borderCollapse: 'collapse', marginBottom: '10px'}}>
+            <table className="w-full border-collapse mb-4">
                 <thead>
-                    <tr style={{borderBottom: '1px dashed black'}}>
-                        <th style={{textAlign: 'left'}}>Cant.</th>
-                        <th style={{textAlign: 'left'}}>Prod.</th>
-                        <th style={{textAlign: 'right'}}>$$</th>
+                    <tr className="border-b border-dashed border-black">
+                        <th className="text-left py-1 font-bold">Cant.</th>
+                        <th className="text-left py-1 font-bold">Descripción</th>
+                        <th className="text-right py-1 font-bold">Total</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {items && items.map((item, i) => (
+                    {items?.map((item, i) => (
                         <tr key={i}>
-                            <td style={{verticalAlign: 'top'}}>{item.cantidad}</td>
-                            <td style={{paddingRight: '5px'}}>
-                                {/* Cortamos el nombre si es muy largo */}
-                                {item.nombre.length > 18 ? item.nombre.substring(0, 18) + '..' : item.nombre}
+                            <td className="py-1 align-top text-center">{item.cantidad}</td>
+                            <td className="py-1 align-top pl-1">
+                                <div className="truncate max-w-[130px]">{item.nombre}</div>
+                                <div className="text-[10px] text-gray-500">${item.precio_venta} c/u</div>
                             </td>
-                            <td style={{textAlign: 'right', verticalAlign: 'top'}}>
-                                ${item.precio_venta * item.cantidad}
+                            <td className="py-1 align-top text-right font-medium">
+                                ${(item.precio_venta * item.cantidad).toFixed(2)}
                             </td>
                         </tr>
                     ))}
@@ -54,20 +48,27 @@ const TicketImprimible = React.forwardRef((props, ref) =>
             </table>
 
             {/* Totales */}
-            <div style={{textAlign: 'right', borderTop: '1px dashed black', paddingTop: '5px'}}>
-                <h3 style={{margin: 0, fontSize: '14px'}}>TOTAL: ${total}</h3>
+            <div className="border-t border-dashed border-black pt-2">
+                <div className="flex justify-between items-center text-sm font-bold mt-1">
+                    <span>TOTAL A PAGAR</span>
+                    <span className="text-lg">${total}</span>
+                </div>
+                {venta?.metodo && (
+                    <p className="text-right text-[10px] uppercase mt-1">Pago: {venta.metodo}</p>
+                )}
             </div>
 
             {/* Pie de página */}
-            <div style={{textAlign: 'center', marginTop: '20px'}}>
-                <p style={{margin: 0}}>¡Gracias por su compra!</p>
+            <div className="text-center mt-6 space-y-1">
+                <p>¡Gracias por su compra!</p>
+                <p className="text-[10px] text-gray-500">No válido como factura fiscal</p>
+                <div className="mt-4 pt-2 border-t border-dashed border-gray-300 text-[10px] italic">
+                    Sistema desarrollado por Fotocopias Ramos
+                </div>
             </div>
-
         </div>
     );
 });
 
-// Agregamos un nombre para facilitar la depuración (opcional pero recomendado)
 TicketImprimible.displayName = 'TicketImprimible';
-
 export default TicketImprimible;
