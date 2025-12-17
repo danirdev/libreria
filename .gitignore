@@ -1,18 +1,7 @@
-# Dependencias (Se instalan con npm install)
-node_modules/
-/backend/node_modules/
-/frontend/node_modules/
+# Ignorar modulos en cualquier carpeta
+**/node_modules/
 
-# Variables de Entorno (SEGURIDAD)
+# Ignorar variables de entorno
 .env
-.env.local
-
-# Archivos de sistema y logs
-.DS_Store
-npm-debug.log*
-
-# Carpetas de compilación (React)
-/frontend/dist/
-
-# Carpeta de imágenes subidas (Opcional: Si quieres guardar las fotos en git, borra esta linea)
-/backend/uploads/
+backend/.env
+frontend/.env
