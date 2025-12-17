@@ -1,0 +1,33 @@
+/* 1. Importamos Tailwind v4 */
+@import "tailwindcss";
+
+/* 2. Definimos tu Tema Personalizado */
+@theme {
+    /* Definimos la fuente moderna */
+    --font-sans: 'Inter', system-ui, sans-serif;
+
+    /* TU COLOR DE MARCA (#335c82) y sus variantes */
+    /* Tailwind v4 detecta esto automáticamente y crea las clases:
+     bg-primary-500, text-primary-600, border-primary-200, etc. */
+
+    --color-primary-50: #f0f7fc;
+    --color-primary-100: #e0eff9;
+    --color-primary-200: #c0dff2;
+    --color-primary-300: #90c7e9;
+    --color-primary-400: #5aaad9;
+    --color-primary-500: #335c82;
+    /* <-- TU COLOR EXACTO */
+    --color-primary-600: #274a6d;
+    --color-primary-700: #203c58;
+    --color-primary-800: #1b3349;
+    --color-primary-900: #182c3e;
+    --color-primary-950: #0f1e2b;
+}
+
+/* 3. Estilos Base (Opcional) */
+@layer base {
+    body {
+        /* Usamos clases de Tailwind directamente aquí */
+        @apply bg-gray-50 text-gray-800 antialiased;
+    }
+}
