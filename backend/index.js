@@ -17,6 +17,7 @@ app.use('/ventas', require('./routes/ventas.routes'));
 app.use('/caja', require('./routes/caja.routes'));
 app.use('/stats', require('./routes/stats.routes'));
 app.use('/auth', require('./routes/auth.routes'));
+app.use('/clientes', require('./routes/clientes.routes'));
 
 // TEST
 app.get('/test-db', async (req, res) =>
