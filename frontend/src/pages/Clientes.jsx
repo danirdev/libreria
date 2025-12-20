@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'react';
 import api from '../api';
+import toast from 'react-hot-toast';
 import {Users, Search, UserPlus, DollarSign, Phone, User, X} from 'lucide-react';
 
 function Clientes ()
@@ -31,7 +32,11 @@ function Clientes ()
             await api.post('/clientes', {nombre: nuevoNombre, telefono: nuevoTel});
             setNuevoNombre(''); setNuevoTel(''); setMostrarForm(false);
             cargarClientes();
-        } catch(err) {alert("Error al crear cliente");}
+            toast.success("Cliente registrado correctamente ✨");
+        } catch(err)
+        {
+            toast.error("Error al crear cliente");
+        }
     };
 
     const registrarPago = async (cliente) =>
@@ -42,7 +47,11 @@ function Clientes ()
         {
             await api.post('/clientes/pagar', {id_cliente: cliente.id, monto: parseFloat(monto)});
             cargarClientes();
-        } catch(err) {alert("Error al registrar pago");}
+            toast.success(`Pago de cliente registrado 💵`);
+        } catch(err)
+        {
+            toast.error("Error al registrar el pago");
+        }
     };
 
     const clientesFiltrados = clientes.filter(c => c.nombre.toLowerCase().includes(busqueda.toLowerCase()));

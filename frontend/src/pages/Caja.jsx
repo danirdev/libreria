@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'react';
 import api from '../api';
+import toast from 'react-hot-toast';
 import {DollarSign, Lock, Unlock, TrendingUp, AlertCircle} from 'lucide-react';
 
 function Caja ()
@@ -33,12 +34,18 @@ function Caja ()
             await api.post('/caja/abrir', {monto_inicial: parseFloat(montoInput)});
             setMontoInput('');
             cargarDatos();
-        } catch(err) {alert("Error al abrir caja");}
+            toast.success("Caja abierta correctamente 🔓");
+        } catch(err)
+        {
+            toast.error("Error al abrir la caja");
+        }
         setLoading(false);
     };
 
     const cerrarCaja = async () =>
     {
+        if(!confirm("¿Seguro que deseas cerrar la caja?")) return;
+
         const real = prompt("Conteo final de billetes. ¿Cuánto dinero hay en realidad?");
         if(!real) return;
 
@@ -49,7 +56,11 @@ function Caja ()
                 monto_final_real: parseFloat(real)
             });
             cargarDatos();
-        } catch(err) {alert("Error al cerrar caja");}
+            toast.success("Turno cerrado. Resumen generado 🔒");
+        } catch(err)
+        {
+            toast.error("Error al cerrar la caja");
+        }
     };
 
     if(estadoCaja === 'CARGANDO') return <div className="p-8 text-center text-gray-500">Cargando...</div>;

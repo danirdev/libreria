@@ -2,6 +2,7 @@ import {useState, useEffect, useRef} from 'react';
 import api from '../api';
 import {useReactToPrint} from 'react-to-print';
 import TicketImprimible from '../components/TicketImprimible';
+import toast from 'react-hot-toast';
 import {Search, ShoppingCart, Trash2, CreditCard, Banknote, Printer, X, CheckCircle, Plus, AlertTriangle} from 'lucide-react';
 
 function Ventas ()
@@ -62,7 +63,7 @@ function Ventas ()
     {
         if(producto.stock_actual <= 0)
         {
-            alert("¡Sin stock!");
+            toast.error("¡Producto sin stock!");
             return;
         }
         const existe = carrito.find(item => item.id === producto.id);
@@ -70,13 +71,14 @@ function Ventas ()
         {
             if(existe.cantidad >= producto.stock_actual)
             {
-                alert("No hay más stock disponible");
+                toast.error("No hay más unidades disponibles");
                 return;
             }
             setCarrito(carrito.map(item => item.id === producto.id ? {...item, cantidad: item.cantidad + 1} : item));
         } else
         {
             setCarrito([...carrito, {...producto, cantidad: 1}]);
+            toast.success("Agregado");
         }
         setBusqueda('');
         setResultados([]);
@@ -95,7 +97,7 @@ function Ventas ()
         // Validación simple
         if(metodoPago === 'Cuenta Corriente' && !clienteSeleccionado)
         {
-            return alert("⚠️ Selecciona un cliente para fiar.");
+            return toast.error("⚠️ Selecciona un cliente para fiar.");
         }
 
         try
@@ -120,10 +122,16 @@ function Ventas ()
             });
 
             setMostrarModal(true);
+            toast.success("¡Venta registrada con éxito!");
+
             setCarrito([]);
             setMetodoPago('Efectivo');
             setClienteSeleccionado('');
-        } catch(err) {alert('Error al procesar venta');}
+        } catch(err)
+        {
+            console.error(err);
+            toast.error('Error al procesar la venta');
+        }
     };
 
     const cerrarModal = () =>
