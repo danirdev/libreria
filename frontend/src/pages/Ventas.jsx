@@ -1,9 +1,9 @@
 import {useState, useEffect, useRef} from 'react';
 import api from '../api';
+import toast from 'react-hot-toast';
 import {useReactToPrint} from 'react-to-print';
 import TicketImprimible from '../components/TicketImprimible';
-import toast from 'react-hot-toast';
-import {Search, ShoppingCart, Trash2, CreditCard, Banknote, Printer, X, CheckCircle, Plus, AlertTriangle} from 'lucide-react';
+import {Search, ShoppingCart, Trash2, CreditCard, Banknote, Printer, CheckCircle, Plus, Minus, ArrowRightLeft} from 'lucide-react';
 
 function Ventas ()
 {
@@ -11,12 +11,10 @@ function Ventas ()
     const [resultados, setResultados] = useState([]);
     const [carrito, setCarrito] = useState([]);
 
-    // Datos y Estados (Simplificados para tu backend actual)
     const [listaClientes, setListaClientes] = useState([]);
     const [metodoPago, setMetodoPago] = useState('Efectivo');
     const [clienteSeleccionado, setClienteSeleccionado] = useState('');
 
-    // Impresión
     const [ultimaVenta, setUltimaVenta] = useState(null);
     const [mostrarModal, setMostrarModal] = useState(false);
 
@@ -69,12 +67,7 @@ function Ventas ()
         const existe = carrito.find(item => item.id === producto.id);
         if(existe)
         {
-            if(existe.cantidad >= producto.stock_actual)
-            {
-                toast.error("No hay más unidades disponibles");
-                return;
-            }
-            setCarrito(carrito.map(item => item.id === producto.id ? {...item, cantidad: item.cantidad + 1} : item));
+            actualizarCantidad(producto.id, existe.cantidad + 1, producto.stock_actual);
         } else
         {
             setCarrito([...carrito, {...producto, cantidad: 1}]);
@@ -83,6 +76,21 @@ function Ventas ()
         setBusqueda('');
         setResultados([]);
         if(inputRef.current) inputRef.current.focus();
+    };
+
+    const actualizarCantidad = (id, nuevaCantidad, stockMaximo) =>
+    {
+        // Si intenta poner 0 o menos, no hacemos nada (o podríamos borrarlo)
+        if(nuevaCantidad < 1) return;
+
+        // Si intenta poner más del stock, avisamos
+        if(nuevaCantidad > stockMaximo)
+        {
+            toast.error(`Solo hay ${stockMaximo} unidades disponibles`);
+            return;
+        }
+
+        setCarrito(carrito.map(item => item.id === id ? {...item, cantidad: nuevaCantidad} : item));
     };
 
     const eliminarDelCarrito = (id) =>
@@ -94,7 +102,6 @@ function Ventas ()
     {
         if(carrito.length === 0) return;
 
-        // Validación simple
         if(metodoPago === 'Cuenta Corriente' && !clienteSeleccionado)
         {
             return toast.error("⚠️ Selecciona un cliente para fiar.");
@@ -102,7 +109,6 @@ function Ventas ()
 
         try
         {
-            // Enviamos exactamente lo que tu backend espera
             const res = await api.post('/ventas', {
                 total: total,
                 items: carrito,
@@ -122,11 +128,10 @@ function Ventas ()
             });
 
             setMostrarModal(true);
-            toast.success("¡Venta registrada con éxito!");
-
             setCarrito([]);
             setMetodoPago('Efectivo');
             setClienteSeleccionado('');
+            toast.success("¡Venta registrada con éxito!");
         } catch(err)
         {
             console.error(err);
@@ -151,7 +156,7 @@ function Ventas ()
                     <input
                         ref={inputRef}
                         type="text"
-                        placeholder="Buscar producto..."
+                        placeholder="Buscar producto (Escanear código)..."
                         value={busqueda}
                         onChange={buscarProducto}
                         autoFocus
@@ -207,17 +212,36 @@ function Ventas ()
                     ) : (
                         carrito.map((item, i) => (
                             <div key={i} className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm border border-gray-100">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 bg-primary-50 rounded-lg flex items-center justify-center text-primary-700 font-bold text-sm">
-                                        {item.cantidad}
-                                    </div>
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-700 line-clamp-1">{item.nombre}</span>
-                                        <span className="text-xs text-gray-400">${item.precio_venta} c/u</span>
+                                <div className="flex-1">
+                                    <span className="text-sm font-medium text-gray-700 line-clamp-1 block mb-1">{item.nombre}</span>
+
+                                    {/* CONTROL DE CANTIDAD CON INPUT */}
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => actualizarCantidad(item.id, item.cantidad - 1, item.stock_actual)}
+                                            className="w-6 h-6 bg-gray-100 hover:bg-gray-200 rounded flex items-center justify-center text-gray-600"
+                                        >
+                                            <Minus size={14} />
+                                        </button>
+
+                                        <input
+                                            type="number"
+                                            value={item.cantidad}
+                                            onChange={(e) => actualizarCantidad(item.id, parseInt(e.target.value) || 0, item.stock_actual)}
+                                            className="w-10 text-center text-sm font-bold border border-gray-200 rounded outline-none focus:border-primary-400"
+                                        />
+
+                                        <button
+                                            onClick={() => actualizarCantidad(item.id, item.cantidad + 1, item.stock_actual)}
+                                            className="w-6 h-6 bg-gray-100 hover:bg-gray-200 rounded flex items-center justify-center text-gray-600"
+                                        >
+                                            <Plus size={14} />
+                                        </button>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <span className="font-bold text-gray-800">${item.precio_venta * item.cantidad}</span>
+
+                                <div className="flex flex-col items-end gap-1 ml-3">
+                                    <span className="font-bold text-gray-800">${(item.precio_venta * item.cantidad).toFixed(2)}</span>
                                     <button onClick={() => eliminarDelCarrito(item.id)} className="text-gray-300 hover:text-red-500">
                                         <Trash2 size={16} />
                                     </button>
@@ -234,12 +258,19 @@ function Ventas ()
                     </div>
 
                     <div className="space-y-3">
-                        <div className="grid grid-cols-2 gap-2">
-                            <button onClick={() => setMetodoPago('Efectivo')} className={`p-2 rounded-lg border flex items-center justify-center gap-2 text-sm font-medium transition-all ${metodoPago === 'Efectivo' ? 'bg-green-50 border-green-200 text-green-700' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
-                                <Banknote size={16} /> Efectivo
+                        {/* BOTONES DE PAGO ACTUALIZADOS */}
+                        <div className="grid grid-cols-3 gap-2">
+                            <button onClick={() => setMetodoPago('Efectivo')} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border text-xs font-bold transition-all ${metodoPago === 'Efectivo' ? 'bg-green-50 border-green-200 text-green-700' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+                                <Banknote size={18} className="mb-1" /> Efectivo
                             </button>
-                            <button onClick={() => setMetodoPago('Cuenta Corriente')} className={`p-2 rounded-lg border flex items-center justify-center gap-2 text-sm font-medium transition-all ${metodoPago === 'Cuenta Corriente' ? 'bg-orange-50 border-orange-200 text-orange-700' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
-                                <CreditCard size={16} /> Fiado
+
+                            {/* NUEVO BOTÓN TRANSFERENCIA */}
+                            <button onClick={() => setMetodoPago('Transferencia')} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border text-xs font-bold transition-all ${metodoPago === 'Transferencia' ? 'bg-purple-50 border-purple-200 text-purple-700' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+                                <ArrowRightLeft size={18} className="mb-1" /> Transferencia
+                            </button>
+
+                            <button onClick={() => setMetodoPago('Cuenta Corriente')} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border text-xs font-bold transition-all ${metodoPago === 'Cuenta Corriente' ? 'bg-orange-50 border-orange-200 text-orange-700' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+                                <CreditCard size={18} className="mb-1" /> Fiado
                             </button>
                         </div>
 

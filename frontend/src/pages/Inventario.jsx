@@ -1,6 +1,5 @@
 import {useState, useEffect, useRef} from 'react';
 import api from '../api';
-// 1. IMPORTAR TOAST
 import toast from 'react-hot-toast';
 import {Package, Search, Plus, Trash2, Edit2, AlertCircle, Barcode, DollarSign, Image as ImageIcon, X, Save, Tag} from 'lucide-react';
 
@@ -12,9 +11,13 @@ function Inventario ()
     const fileInputRef = useRef(null);
     const [editId, setEditId] = useState(null);
 
+    // TUS CATEGORÍAS FIJAS
+    const CATEGORIAS = ["Libreria", "Fotocopias", "Cotillon", "Frescos", "Golosinas"];
+
     const [formData, setFormData] = useState({
         codigo_barras: '', nombre: '', precio_costo: '', precio_venta: '',
-        stock_actual: '', categoria: '', es_servicio: false, imagen: null
+        stock_actual: '', categoria: 'Libreria', // Valor por defecto
+        es_servicio: false, imagen: null
     });
 
     useEffect(() => {cargarProductos();}, []);
@@ -28,14 +31,17 @@ function Inventario ()
         } catch(err)
         {
             console.error("Error cargando:", err);
-            toast.error("Error al cargar productos"); // Notificación de error silenciosa
+            toast.error("Error al cargar productos");
         }
     };
 
     const handleChange = (e) =>
     {
         const {name, value, type, checked} = e.target;
-        setFormData(prev => ({...prev, [name]: type === 'checkbox' ? checked : value}));
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
     };
 
     const handleFileChange = (e) =>
@@ -55,12 +61,12 @@ function Inventario ()
             precio_costo: producto.precio_costo,
             precio_venta: producto.precio_venta,
             stock_actual: producto.stock_actual,
-            categoria: producto.categoria || '',
+            categoria: producto.categoria || 'Libreria',
             es_servicio: producto.es_servicio || false,
             imagen: null
         });
         window.scrollTo({top: 0, behavior: 'smooth'});
-        toast("Modo edición activado", {icon: '✏️'}); // Notificación simple
+        toast("Modo edición activado", {icon: '✏️'});
     };
 
     const cancelarEdicion = () =>
@@ -68,7 +74,7 @@ function Inventario ()
         setEditId(null);
         setFormData({
             codigo_barras: '', nombre: '', precio_costo: '', precio_venta: '',
-            stock_actual: '', categoria: '', es_servicio: false, imagen: null
+            stock_actual: '', categoria: 'Libreria', es_servicio: false, imagen: null
         });
         if(fileInputRef.current) fileInputRef.current.value = "";
     };
@@ -78,7 +84,6 @@ function Inventario ()
         e.preventDefault();
         setLoading(true);
 
-        // Creamos la promesa de la petición
         const guardarPromesa = new Promise(async (resolve, reject) =>
         {
             try
@@ -100,44 +105,34 @@ function Inventario ()
 
                 cancelarEdicion();
                 cargarProductos();
-                resolve(); // ¡Éxito!
+                resolve();
             } catch(err)
             {
                 console.error(err);
-                reject(err); // ¡Error!
+                reject(err);
             } finally
             {
                 setLoading(false);
             }
         });
 
-        // 2. MAGIA DE TOAST.PROMISE: Muestra Cargando -> Éxito/Error automáticamente
         toast.promise(guardarPromesa, {
-            loading: 'Guardando producto...',
+            loading: 'Guardando...',
             success: <b>{editId ? '¡Producto actualizado!' : '¡Producto creado!'}</b>,
-            error: <b>Error al guardar. Intenta de nuevo.</b>,
+            error: <b>Error al guardar.</b>,
         });
     };
 
     const eliminarProducto = async (id) =>
     {
-        // Nota: Para confirmaciones, el "confirm" nativo sigue siendo lo más seguro y rápido,
-        // pero hay formas de hacerlo con Toast customizados si prefieres.
         if(!confirm("¿Seguro que deseas eliminar este producto?")) return;
-
-        const promesaEliminar = api.delete(`/productos/${id}`)
-            .then(() => cargarProductos());
-
+        const promesaEliminar = api.delete(`/productos/${id}`).then(() => cargarProductos());
         toast.promise(promesaEliminar, {
             loading: 'Eliminando...',
             success: 'Producto eliminado',
-            error: 'No se pudo eliminar (¿tiene ventas?)',
+            error: 'No se pudo eliminar',
         });
     };
-
-    // ... (El resto del return es idéntico al anterior) ...
-    // Solo asegúrate de copiar el return completo de la respuesta anterior si lo necesitas
-    // O mantén tu return actual si ya lo tienes bien.
 
     const productosFiltrados = productos.filter(p =>
         p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -145,15 +140,8 @@ function Inventario ()
     );
 
     return (
-        // ... Tu JSX de siempre ...
         <div className="space-y-6 animate-fade-in font-sans pb-12">
-            {/* ... (El código del formulario y tabla que ya tenías) ... */}
-            {/* ... Si quieres que te pase el JSX completo de nuevo avísame, pero es igual al anterior ... */}
-
-            {/* SOLO UN CAMBIO EN EL BOTÓN PARA QUE SE VEA MEJOR EL LOADING (Opcional) */}
-            {/* En el botón guardar, ya no necesitamos mostrar "Guardando..." en texto porque el Toast lo hace */}
             <div className={`p-6 rounded-2xl shadow-sm border transition-colors ${editId ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-100'}`}>
-                {/* ... cabecera ... */}
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <div className={`p-2.5 rounded-lg ${editId ? 'bg-blue-200 text-blue-700' : 'bg-primary-100 text-primary-600'}`}>
@@ -174,9 +162,7 @@ function Inventario ()
                 </div>
 
                 <form onSubmit={guardarProducto} className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
-                    {/* ... Inputs iguales ... */}
 
-                    {/* Código de Barras */}
                     <div className="md:col-span-2">
                         <label className="text-xs font-bold text-gray-500 uppercase ml-1">Código de Barras</label>
                         <div className="relative">
@@ -189,30 +175,31 @@ function Inventario ()
                         </div>
                     </div>
 
-                    {/* Nombre */}
                     <div className="md:col-span-4">
                         <label className="text-xs font-bold text-gray-500 uppercase ml-1">Nombre del Producto</label>
                         <input
-                            type="text" name="nombre" placeholder="Ej: Cuaderno Espiral A4" required
+                            type="text" name="nombre" placeholder="Ej: Coca Cola 500ml" required
                             value={formData.nombre} onChange={handleChange}
                             className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
                         />
                     </div>
 
-                    {/* Categoría */}
+                    {/* AQUÍ ESTÁ EL CAMBIO: SELECT DE CATEGORÍAS */}
                     <div className="md:col-span-2">
                         <label className="text-xs font-bold text-gray-500 uppercase ml-1">Categoría</label>
                         <div className="relative">
                             <Tag size={16} className="absolute left-3 top-3 text-gray-400" />
-                            <input
-                                type="text" name="categoria" placeholder="Ej: Oficina, Escolar..."
-                                value={formData.categoria} onChange={handleChange}
-                                className="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
-                            />
+                            <select
+                                name="categoria"
+                                value={formData.categoria}
+                                onChange={handleChange}
+                                className="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none appearance-none"
+                            >
+                                {CATEGORIAS.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                            </select>
                         </div>
                     </div>
 
-                    {/* Costo */}
                     <div className="md:col-span-1">
                         <label className="text-xs font-bold text-gray-500 uppercase ml-1">Costo</label>
                         <div className="relative">
@@ -225,7 +212,6 @@ function Inventario ()
                         </div>
                     </div>
 
-                    {/* Precio Venta */}
                     <div className="md:col-span-1">
                         <label className="text-xs font-bold text-gray-500 uppercase ml-1">Venta</label>
                         <div className="relative">
@@ -238,7 +224,6 @@ function Inventario ()
                         </div>
                     </div>
 
-                    {/* Stock */}
                     <div className="md:col-span-2">
                         <label className="text-xs font-bold text-gray-500 uppercase ml-1">Stock</label>
                         <input
@@ -248,7 +233,6 @@ function Inventario ()
                         />
                     </div>
 
-                    {/* Imagen Input */}
                     <div className="md:col-span-4">
                         <label className="text-xs font-bold text-gray-500 uppercase ml-1">Imagen (Opcional)</label>
                         <div className="relative">
@@ -260,23 +244,16 @@ function Inventario ()
                         </div>
                     </div>
 
-                    {/* Botón Guardar */}
                     <div className="md:col-span-2">
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className={`w-full font-bold py-2.5 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 h-[42px] text-white
-                            ${editId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-primary-600 hover:bg-primary-700'}`}
-                        >
-                            {loading ? '...' : (editId ? <><Save size={18} /> Actualizar Producto</> : <><Plus size={20} /> Agregar al Inventario</>)}
+                        <button type="submit" disabled={loading} className={`w-full font-bold py-2.5 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 h-[42px] text-white ${editId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-primary-600 hover:bg-primary-700'}`}>
+                            {loading ? '...' : (editId ? <><Save size={18} /> Actualizar</> : <><Plus size={20} /> Agregar</>)}
                         </button>
                     </div>
                 </form>
             </div>
 
-            {/* --- TABLA DE PRODUCTOS --- */}
+            {/* TABLA IGUAL QUE ANTES... */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[600px]">
-                {/* Buscador Tabla */}
                 <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between gap-4">
                     <div className="relative w-full max-w-md">
                         <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -293,7 +270,6 @@ function Inventario ()
                     </div>
                 </div>
 
-                {/* Tabla Scrollable */}
                 <div className="overflow-y-auto flex-1">
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-gray-50 sticky top-0 z-10 text-xs font-bold text-gray-500 uppercase">
@@ -316,9 +292,7 @@ function Inventario ()
                                             {p.imagen_url ? (
                                                 <img src={p.imagen_url} alt="" className="w-10 h-10 rounded-lg object-cover border border-gray-200 bg-white" />
                                             ) : (
-                                                <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-300">
-                                                    <ImageIcon size={16} />
-                                                </div>
+                                                <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-300"><ImageIcon size={16} /></div>
                                             )}
                                         </td>
                                         <td className="py-2 px-4 font-mono text-xs text-gray-500">{p.codigo_barras || '---'}</td>
@@ -333,33 +307,14 @@ function Inventario ()
                                         </td>
                                         <td className="py-2 px-4">
                                             <div className="flex items-center justify-center gap-2">
-                                                <button
-                                                    onClick={() => iniciarEdicion(p)}
-                                                    className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                                                    title="Editar"
-                                                >
-                                                    <Edit2 size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={() => eliminarProducto(p.id)}
-                                                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                    title="Eliminar"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
+                                                <button onClick={() => iniciarEdicion(p)} className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"><Edit2 size={16} /></button>
+                                                <button onClick={() => eliminarProducto(p.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
                                             </div>
                                         </td>
                                     </tr>
                                 ))
                             ) : (
-                                <tr>
-                                    <td colSpan="8" className="py-12 text-center text-gray-400">
-                                        <div className="flex flex-col items-center gap-2">
-                                            <AlertCircle size={32} className="opacity-50" />
-                                            <span>No se encontraron productos</span>
-                                        </div>
-                                    </td>
-                                </tr>
+                                <tr><td colSpan="8" className="py-12 text-center text-gray-400">Sin resultados</td></tr>
                             )}
                         </tbody>
                     </table>
