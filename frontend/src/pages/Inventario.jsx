@@ -11,6 +11,7 @@ function Inventario ()
     const fileInputRef = useRef(null);
     const [editId, setEditId] = useState(null);
     const [esAdmin, setEsAdmin] = useState(false);
+    const [preview, setPreview] = useState(null);
 
     const CATEGORIAS = ["Libreria", "Fotocopias", "Cotillon", "Frescos", "Golosinas"];
 
@@ -47,6 +48,7 @@ function Inventario ()
         if(e.target.files && e.target.files[0])
         {
             setFormData(prev => ({...prev, imagen: e.target.files[0]}));
+            setPreview(URL.createObjectURL(e.target.files[0]));
         }
     };
 
@@ -64,6 +66,7 @@ function Inventario ()
             es_servicio: producto.es_servicio || false,
             imagen: null
         });
+        setPreview(producto.imagen_url);
         window.scrollTo({top: 0, behavior: 'smooth'});
         toast("Modo edición activado", {icon: '✏️'});
     };
@@ -75,6 +78,7 @@ function Inventario ()
             codigo_barras: '', nombre: '', precio_costo: '', precio_venta: '',
             stock_actual: '', stock_minimo: 5, categoria: 'Libreria', es_servicio: false, imagen: null
         });
+        setPreview(null);
         if(fileInputRef.current) fileInputRef.current.value = "";
     };
 
@@ -210,7 +214,12 @@ function Inventario ()
                     {/* Imagen */}
                     <div className="md:col-span-4">
                         <label className="text-xs font-bold text-gray-500 uppercase ml-1">Imagen</label>
-                        <input type="file" ref={fileInputRef} accept="image/*" onChange={handleFileChange} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm" />
+                        <div className="flex items-center gap-3">
+                            {preview && (
+                                <img src={preview} alt="Preview" className="w-10 h-10 rounded-lg object-cover border border-gray-200 bg-gray-50" />
+                            )}
+                            <input type="file" ref={fileInputRef} accept="image/*" onChange={handleFileChange} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm" />
+                        </div>
                     </div>
 
                     {/* Botón */}
@@ -233,6 +242,7 @@ function Inventario ()
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-gray-50 sticky top-0 z-10 text-xs font-bold text-gray-500 uppercase">
                             <tr>
+                                <th className="p-3 w-16">Img</th>
                                 <th className="p-3">Producto</th>
                                 <th className="p-3 text-right">Precio</th>
                                 <th className="p-3 text-center">Stock</th>
@@ -243,6 +253,15 @@ function Inventario ()
                         <tbody className="divide-y divide-gray-100 text-sm">
                             {productosFiltrados.map(p => (
                                 <tr key={p.id} className={`hover:bg-gray-50 ${editId === p.id ? 'bg-blue-50' : ''}`}>
+                                    <td className="p-3">
+                                        {p.imagen_url ? (
+                                            <img src={p.imagen_url} alt="" className="w-10 h-10 rounded-lg object-cover border border-gray-200 bg-white" />
+                                        ) : (
+                                            <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-300">
+                                                <ImageIcon size={16} />
+                                            </div>
+                                        )}
+                                    </td>
                                     <td className="p-3">
                                         <div className="font-medium text-gray-800">{p.nombre}</div>
                                         {/* Mostramos si es servicio en el listado */}
