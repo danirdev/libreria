@@ -16,7 +16,7 @@ build/
 
 # --- DATA LOCAL (Tus fotos y base de datos) ---
 backend/uploads/
-*.sql
+# *.sql
 *.sqlite
 
 # --- SISTEMA OPERATIVO ---
