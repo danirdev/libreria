@@ -180,6 +180,21 @@ function Inventario ()
                         <label className="text-xs font-bold text-gray-500 uppercase ml-1">Stock Actual</label>
                         <input type="number" name="stock_actual" value={formData.stock_actual} onChange={handleChange} required className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl outline-none focus:border-primary-500" placeholder="0" />
                     </div>
+
+                    {/* --- AGREGAR ESTO: CHECKBOX DE SERVICIO --- */}
+                    <div className="md:col-span-1 flex items-center justify-center pt-6">
+                        <label className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200">
+                            <input
+                                type="checkbox"
+                                name="es_servicio"
+                                checked={formData.es_servicio}
+                                onChange={handleChange}
+                                className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500 border-gray-300 cursor-pointer"
+                            />
+                            <span className="text-xs font-bold text-gray-600 uppercase">¿Es Servicio?</span>
+                        </label>
+                    </div>
+                    {/* ----------------------------------------- */}
                     <div className="md:col-span-1">
                         <label className="text-xs font-bold text-red-400 uppercase ml-1">Alerta Mínimo</label>
                         <div className="relative">

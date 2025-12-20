@@ -3,7 +3,7 @@ import api from '../api';
 import toast from 'react-hot-toast';
 import {useReactToPrint} from 'react-to-print';
 import TicketImprimible from '../components/TicketImprimible';
-import {Search, ShoppingCart, Trash2, CreditCard, Banknote, Printer, CheckCircle, Plus, Minus, ArrowRightLeft} from 'lucide-react';
+import {Search, ShoppingCart, Trash2, CreditCard, Banknote, Printer, CheckCircle, Plus, Minus, ArrowRightLeft, Edit3} from 'lucide-react';
 
 function Ventas ()
 {
@@ -21,6 +21,7 @@ function Ventas ()
     const inputRef = useRef(null);
     const ticketRef = useRef();
 
+    // El total se calcula dinámicamente con el precio que tenga el item en ese momento
     const total = carrito.reduce((sum, item) => sum + (item.precio_venta * item.cantidad), 0);
 
     useEffect(() => {cargarClientes();}, []);
@@ -59,7 +60,8 @@ function Ventas ()
 
     const agregarAlCarrito = (producto) =>
     {
-        if(producto.stock_actual <= 0)
+        // Si NO es servicio y no hay stock, bloqueamos.
+        if(!producto.es_servicio && producto.stock_actual <= 0)
         {
             toast.error("¡Producto sin stock!");
             return;
@@ -67,7 +69,13 @@ function Ventas ()
         const existe = carrito.find(item => item.id === producto.id);
         if(existe)
         {
-            actualizarCantidad(producto.id, existe.cantidad + 1, producto.stock_actual);
+            // Si es servicio, no validamos stock máximo
+            if(!producto.es_servicio && existe.cantidad >= producto.stock_actual)
+            {
+                toast.error("No hay más stock");
+                return;
+            }
+            actualizarCantidad(producto.id, existe.cantidad + 1, producto.stock_actual, producto.es_servicio);
         } else
         {
             setCarrito([...carrito, {...producto, cantidad: 1}]);
@@ -78,19 +86,23 @@ function Ventas ()
         if(inputRef.current) inputRef.current.focus();
     };
 
-    const actualizarCantidad = (id, nuevaCantidad, stockMaximo) =>
+    const actualizarCantidad = (id, nuevaCantidad, stockMaximo, esServicio) =>
     {
-        // Si intenta poner 0 o menos, no hacemos nada (o podríamos borrarlo)
         if(nuevaCantidad < 1) return;
-
-        // Si intenta poner más del stock, avisamos
-        if(nuevaCantidad > stockMaximo)
+        if(!esServicio && nuevaCantidad > stockMaximo)
         {
-            toast.error(`Solo hay ${stockMaximo} unidades disponibles`);
+            toast.error(`Solo hay ${stockMaximo} unidades`);
             return;
         }
-
         setCarrito(carrito.map(item => item.id === id ? {...item, cantidad: nuevaCantidad} : item));
+    };
+
+    // NUEVA FUNCIÓN: Permite cambiar el precio unitario en el carrito
+    const actualizarPrecio = (id, nuevoPrecio) =>
+    {
+        const precio = parseFloat(nuevoPrecio);
+        if(precio < 0) return;
+        setCarrito(carrito.map(item => item.id === id ? {...item, precio_venta: precio || 0} : item));
     };
 
     const eliminarDelCarrito = (id) =>
@@ -111,7 +123,7 @@ function Ventas ()
         {
             const res = await api.post('/ventas', {
                 total: total,
-                items: carrito,
+                items: carrito, // Enviamos el carrito con los precios modificados
                 metodo_pago: metodoPago,
                 id_cliente: metodoPago === 'Cuenta Corriente' ? clienteSeleccionado : null
             });
@@ -174,8 +186,8 @@ function Ventas ()
                                     className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-md hover:border-primary-200 transition-all group"
                                 >
                                     <div className="flex justify-between items-start mb-2">
-                                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${prod.stock_actual > 0 ? 'bg-primary-50 text-primary-700' : 'bg-red-50 text-red-700'}`}>
-                                            Stock: {prod.stock_actual}
+                                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${prod.es_servicio ? 'bg-purple-50 text-purple-700' : (prod.stock_actual > 0 ? 'bg-primary-50 text-primary-700' : 'bg-red-50 text-red-700')}`}>
+                                            {prod.es_servicio ? 'Servicio' : `Stock: ${prod.stock_actual}`}
                                         </span>
                                         <Plus size={20} className="text-gray-300 group-hover:text-primary-500" />
                                     </div>
@@ -194,11 +206,11 @@ function Ventas ()
             </div>
 
             {/* DERECHA: TICKET */}
-            <div className="w-full lg:w-[400px] bg-white rounded-2xl shadow-xl border border-gray-100 flex flex-col overflow-hidden">
+            <div className="w-full lg:w-[450px] bg-white rounded-2xl shadow-xl border border-gray-100 flex flex-col overflow-hidden">
                 <div className="bg-primary-600 p-4 text-white flex justify-between items-center shadow-md z-10">
                     <div className="flex items-center gap-2">
                         <ShoppingCart size={20} />
-                        <h2 className="font-bold tracking-wide">Ticket</h2>
+                        <h2 className="font-bold tracking-wide">Ticket Actual</h2>
                     </div>
                     <span className="bg-white/20 px-3 py-1 rounded-full text-sm font-medium">{carrito.length} Items</span>
                 </div>
@@ -211,40 +223,50 @@ function Ventas ()
                         </div>
                     ) : (
                         carrito.map((item, i) => (
-                            <div key={i} className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm border border-gray-100">
-                                <div className="flex-1">
-                                    <span className="text-sm font-medium text-gray-700 line-clamp-1 block mb-1">{item.nombre}</span>
+                            <div key={i} className="flex flex-col bg-white p-3 rounded-xl shadow-sm border border-gray-100 gap-3">
 
-                                    {/* CONTROL DE CANTIDAD CON INPUT */}
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={() => actualizarCantidad(item.id, item.cantidad - 1, item.stock_actual)}
-                                            className="w-6 h-6 bg-gray-100 hover:bg-gray-200 rounded flex items-center justify-center text-gray-600"
-                                        >
-                                            <Minus size={14} />
-                                        </button>
-
-                                        <input
-                                            type="number"
-                                            value={item.cantidad}
-                                            onChange={(e) => actualizarCantidad(item.id, parseInt(e.target.value) || 0, item.stock_actual)}
-                                            className="w-10 text-center text-sm font-bold border border-gray-200 rounded outline-none focus:border-primary-400"
-                                        />
-
-                                        <button
-                                            onClick={() => actualizarCantidad(item.id, item.cantidad + 1, item.stock_actual)}
-                                            className="w-6 h-6 bg-gray-100 hover:bg-gray-200 rounded flex items-center justify-center text-gray-600"
-                                        >
-                                            <Plus size={14} />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col items-end gap-1 ml-3">
-                                    <span className="font-bold text-gray-800">${(item.precio_venta * item.cantidad).toFixed(2)}</span>
-                                    <button onClick={() => eliminarDelCarrito(item.id)} className="text-gray-300 hover:text-red-500">
+                                {/* 1. Nombre y Eliminar */}
+                                <div className="flex justify-between items-start">
+                                    <span className="text-sm font-medium text-gray-700 line-clamp-2">{item.nombre}</span>
+                                    <button onClick={() => eliminarDelCarrito(item.id)} className="text-gray-300 hover:text-red-500 p-1">
                                         <Trash2 size={16} />
                                     </button>
+                                </div>
+
+                                {/* 2. Controles de Precio y Cantidad */}
+                                <div className="flex justify-between items-center bg-gray-50 p-2 rounded-lg">
+
+                                    {/* CANTIDAD */}
+                                    <div className="flex items-center gap-1">
+                                        <button onClick={() => actualizarCantidad(item.id, item.cantidad - 1, item.stock_actual, item.es_servicio)} className="w-6 h-6 bg-white border border-gray-200 rounded hover:bg-gray-100 flex items-center justify-center text-gray-600"><Minus size={12} /></button>
+                                        <input
+                                            type="number" value={item.cantidad}
+                                            onChange={(e) => actualizarCantidad(item.id, parseInt(e.target.value) || 0, item.stock_actual, item.es_servicio)}
+                                            className="w-10 text-center text-sm font-bold bg-transparent outline-none"
+                                        />
+                                        <button onClick={() => actualizarCantidad(item.id, item.cantidad + 1, item.stock_actual, item.es_servicio)} className="w-6 h-6 bg-white border border-gray-200 rounded hover:bg-gray-100 flex items-center justify-center text-gray-600"><Plus size={12} /></button>
+                                        <span className="text-xs text-gray-400 ml-1">unid.</span>
+                                    </div>
+
+                                    <span className="text-gray-300">|</span>
+
+                                    {/* PRECIO EDITABLE (La magia está aquí) */}
+                                    <div className="flex items-center gap-1">
+                                        <span className="text-xs text-gray-400">$</span>
+                                        <input
+                                            type="number"
+                                            value={item.precio_venta}
+                                            onChange={(e) => actualizarPrecio(item.id, e.target.value)}
+                                            className="w-16 text-right text-sm font-bold text-primary-700 bg-white border border-gray-200 rounded px-1 outline-none focus:border-primary-400"
+                                        />
+                                    </div>
+
+                                </div>
+
+                                {/* 3. Subtotal Renglón */}
+                                <div className="text-right">
+                                    <span className="text-xs text-gray-400 mr-2">Subtotal:</span>
+                                    <span className="font-bold text-gray-800">${(item.precio_venta * item.cantidad).toFixed(2)}</span>
                                 </div>
                             </div>
                         ))
@@ -253,22 +275,18 @@ function Ventas ()
 
                 <div className="bg-white p-5 border-t border-gray-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
                     <div className="flex justify-between items-end mb-4">
-                        <span className="text-gray-500 font-medium">Total</span>
-                        <span className="text-3xl font-black text-gray-800">${total}</span>
+                        <span className="text-gray-500 font-medium">Total a Pagar</span>
+                        <span className="text-3xl font-black text-gray-800">${total.toFixed(2)}</span>
                     </div>
 
                     <div className="space-y-3">
-                        {/* BOTONES DE PAGO ACTUALIZADOS */}
                         <div className="grid grid-cols-3 gap-2">
                             <button onClick={() => setMetodoPago('Efectivo')} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border text-xs font-bold transition-all ${metodoPago === 'Efectivo' ? 'bg-green-50 border-green-200 text-green-700' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
                                 <Banknote size={18} className="mb-1" /> Efectivo
                             </button>
-
-                            {/* NUEVO BOTÓN TRANSFERENCIA */}
                             <button onClick={() => setMetodoPago('Transferencia')} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border text-xs font-bold transition-all ${metodoPago === 'Transferencia' ? 'bg-purple-50 border-purple-200 text-purple-700' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
                                 <ArrowRightLeft size={18} className="mb-1" /> Transferencia
                             </button>
-
                             <button onClick={() => setMetodoPago('Cuenta Corriente')} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border text-xs font-bold transition-all ${metodoPago === 'Cuenta Corriente' ? 'bg-orange-50 border-orange-200 text-orange-700' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
                                 <CreditCard size={18} className="mb-1" /> Fiado
                             </button>
