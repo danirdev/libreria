@@ -81,3 +81,8 @@ CREATE TABLE IF NOT EXISTS movimientos_caja (
 INSERT INTO usuarios (nombre, email, password, rol) 
 VALUES ('Administrador', 'admin@libreria.com', '$2a$10$X7V.jX.J.X.X.X.X.X.X.uX.X.X.X.X.X.X.X.X.X.X', 'admin')
 ON CONFLICT (email) DO NOTHING;
+
+
+
+ALTER TABLE ventas 
+ADD COLUMN id_cliente INTEGER REFERENCES clientes(id);
