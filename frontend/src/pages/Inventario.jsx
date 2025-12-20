@@ -11,16 +11,24 @@ function Inventario ()
     const fileInputRef = useRef(null);
     const [editId, setEditId] = useState(null);
 
-    // TUS CATEGORÍAS FIJAS
+    // ESTADO PARA SABER SI ES ADMIN
+    const [esAdmin, setEsAdmin] = useState(false);
+
     const CATEGORIAS = ["Libreria", "Fotocopias", "Cotillon", "Frescos", "Golosinas"];
 
     const [formData, setFormData] = useState({
         codigo_barras: '', nombre: '', precio_costo: '', precio_venta: '',
-        stock_actual: '', categoria: 'Libreria', // Valor por defecto
+        stock_actual: '', categoria: 'Libreria',
         es_servicio: false, imagen: null
     });
 
-    useEffect(() => {cargarProductos();}, []);
+    useEffect(() =>
+    {
+        cargarProductos();
+        // Verificar rol
+        const u = JSON.parse(localStorage.getItem('usuario') || '{}');
+        setEsAdmin(u.rol === 'admin');
+    }, []);
 
     const cargarProductos = async () =>
     {
@@ -38,10 +46,7 @@ function Inventario ()
     const handleChange = (e) =>
     {
         const {name, value, type, checked} = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value
-        }));
+        setFormData(prev => ({...prev, [name]: type === 'checkbox' ? checked : value}));
     };
 
     const handleFileChange = (e) =>
@@ -126,7 +131,10 @@ function Inventario ()
     const eliminarProducto = async (id) =>
     {
         if(!confirm("¿Seguro que deseas eliminar este producto?")) return;
-        const promesaEliminar = api.delete(`/productos/${id}`).then(() => cargarProductos());
+
+        const promesaEliminar = api.delete(`/productos/${id}`)
+            .then(() => cargarProductos());
+
         toast.promise(promesaEliminar, {
             loading: 'Eliminando...',
             success: 'Producto eliminado',
@@ -141,6 +149,8 @@ function Inventario ()
 
     return (
         <div className="space-y-6 animate-fade-in font-sans pb-12">
+
+            {/* El formulario lo pueden ver todos para cargar stock, pero podrías ocultarlo también si quisieras */}
             <div className={`p-6 rounded-2xl shadow-sm border transition-colors ${editId ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-100'}`}>
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
@@ -184,7 +194,6 @@ function Inventario ()
                         />
                     </div>
 
-                    {/* AQUÍ ESTÁ EL CAMBIO: SELECT DE CATEGORÍAS */}
                     <div className="md:col-span-2">
                         <label className="text-xs font-bold text-gray-500 uppercase ml-1">Categoría</label>
                         <div className="relative">
@@ -252,7 +261,6 @@ function Inventario ()
                 </form>
             </div>
 
-            {/* TABLA IGUAL QUE ANTES... */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[600px]">
                 <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between gap-4">
                     <div className="relative w-full max-w-md">
@@ -292,7 +300,9 @@ function Inventario ()
                                             {p.imagen_url ? (
                                                 <img src={p.imagen_url} alt="" className="w-10 h-10 rounded-lg object-cover border border-gray-200 bg-white" />
                                             ) : (
-                                                <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-300"><ImageIcon size={16} /></div>
+                                                <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-300">
+                                                    <ImageIcon size={16} />
+                                                </div>
                                             )}
                                         </td>
                                         <td className="py-2 px-4 font-mono text-xs text-gray-500">{p.codigo_barras || '---'}</td>
@@ -307,14 +317,38 @@ function Inventario ()
                                         </td>
                                         <td className="py-2 px-4">
                                             <div className="flex items-center justify-center gap-2">
-                                                <button onClick={() => iniciarEdicion(p)} className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"><Edit2 size={16} /></button>
-                                                <button onClick={() => eliminarProducto(p.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
+                                                <button
+                                                    onClick={() => iniciarEdicion(p)}
+                                                    className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                                                    title="Editar"
+                                                >
+                                                    <Edit2 size={16} />
+                                                </button>
+
+                                                {/* --- PROTECCIÓN: ELIMINAR SOLO ADMIN --- */}
+                                                {esAdmin && (
+                                                    <button
+                                                        onClick={() => eliminarProducto(p.id)}
+                                                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                        title="Eliminar"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                )}
+
                                             </div>
                                         </td>
                                     </tr>
                                 ))
                             ) : (
-                                <tr><td colSpan="8" className="py-12 text-center text-gray-400">Sin resultados</td></tr>
+                                <tr>
+                                    <td colSpan="8" className="py-12 text-center text-gray-400">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <AlertCircle size={32} className="opacity-50" />
+                                            <span>No se encontraron productos</span>
+                                        </div>
+                                    </td>
+                                </tr>
                             )}
                         </tbody>
                     </table>

@@ -1,11 +1,12 @@
 import {useState, useEffect} from 'react';
 import {Toaster} from 'react-hot-toast';
-import {ShoppingCart, Package, DollarSign, BarChart2, Users, LogOut, Menu, X, User} from 'lucide-react';
+import {ShoppingCart, Package, DollarSign, BarChart2, Users, LogOut, Menu, X, User, Clock} from 'lucide-react';
 import Inventario from './pages/Inventario';
 import Ventas from './pages/Ventas';
 import Caja from './pages/Caja';
 import Dashboard from './pages/Dashboard';
 import Clientes from './pages/Clientes';
+import Historial from './pages/Historial';
 import Login from './pages/Login';
 
 function App ()
@@ -30,7 +31,6 @@ function App ()
 
   if(!usuario) return <Login onLogin={() => window.location.reload()} />;
 
-  // Componente de Botón del Menú (Reutilizable)
   const NavLink = ({id, icon: Icon, label}) => (
     <button
       onClick={() => {setPagina(id); setSidebarOpen(false);}}
@@ -51,13 +51,12 @@ function App ()
 
       <Toaster position="bottom-right" reverseOrder={false} />
 
-      {/* SIDEBAR (Barra Lateral) */}
+      {/* SIDEBAR */}
       <aside className={`
         fixed inset-y-0 left-0 z-30 w-72 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out flex flex-col shadow-lg md:shadow-none md:relative md:translate-x-0
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
 
-        {/* Logo */}
         <div className="h-20 flex items-center px-8 border-b border-gray-100 bg-white">
           <div className="bg-primary-600 p-2 rounded-lg mr-3 shadow-md shadow-primary-200">
             <DollarSign className="text-white" size={24} />
@@ -71,10 +70,10 @@ function App ()
           </button>
         </div>
 
-        {/* Menú */}
         <nav className="flex-1 overflow-y-auto p-6 space-y-2">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 pl-2">Operaciones</p>
           <NavLink id="ventas" icon={ShoppingCart} label="Punto de Venta" />
+          <NavLink id="historial" icon={Clock} label="Historial" />
           <NavLink id="caja" icon={DollarSign} label="Caja y Turnos" />
           <NavLink id="clientes" icon={Users} label="Clientes / Fiados" />
 
@@ -82,10 +81,14 @@ function App ()
 
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 pl-2">Administración</p>
           <NavLink id="inventario" icon={Package} label="Inventario" />
-          <NavLink id="dashboard" icon={BarChart2} label="Reportes" />
+
+          {/* --- SEGURIDAD: SOLO ADMIN VE ESTO --- */}
+          {usuario?.rol === 'admin' && (
+            <NavLink id="dashboard" icon={BarChart2} label="Reportes" />
+          )}
+
         </nav>
 
-        {/* Usuario (Pie de página) */}
         <div className="p-4 border-t border-gray-100 bg-gray-50/50 m-4 rounded-2xl">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary-500 to-primary-300 flex items-center justify-center text-white shadow-md">
@@ -102,9 +105,7 @@ function App ()
         </div>
       </aside>
 
-      {/* CONTENIDO PRINCIPAL */}
       <main className="flex-1 flex flex-col h-full relative overflow-hidden">
-        {/* Header Móvil */}
         <header className="md:hidden h-16 bg-white border-b border-gray-200 flex items-center px-4 justify-between shrink-0">
           <div className="flex items-center gap-3">
             <button onClick={() => setSidebarOpen(true)} className="p-2 text-gray-600 bg-gray-100 rounded-lg active:scale-95 transition">
@@ -114,18 +115,18 @@ function App ()
           </div>
         </header>
 
-        {/* Área de Trabajo (Páginas) */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8 w-full bg-gray-50/50">
           <div className="max-w-7xl mx-auto h-full animate-fade-in">
             {pagina === 'ventas' && <Ventas />}
+            {pagina === 'historial' && <Historial />}
             {pagina === 'inventario' && <Inventario />}
             {pagina === 'caja' && <Caja />}
-            {pagina === 'dashboard' && <Dashboard />}
+            {/* Si un usuario 'vendedor' intenta forzar la vista, no se mostrará nada o podrías redirigir */}
+            {pagina === 'dashboard' && (usuario.rol === 'admin' ? <Dashboard /> : <div className="text-center p-10 text-gray-500">Acceso Restringido 🔒</div>)}
             {pagina === 'clientes' && <Clientes />}
           </div>
         </div>
 
-        {/* Fondo oscuro móvil */}
         {sidebarOpen && (
           <div className="md:hidden fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-20 transition-opacity" onClick={() => setSidebarOpen(false)}></div>
         )}
