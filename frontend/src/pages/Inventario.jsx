@@ -11,6 +11,7 @@ function Inventario ()
     const fileInputRef = useRef(null);
     const [editId, setEditId] = useState(null);
     const [esAdmin, setEsAdmin] = useState(false);
+    const [preview, setPreview] = useState(null);
 
     const CATEGORIAS = ["Libreria", "Fotocopias", "Cotillon", "Frescos", "Golosinas"];
 
@@ -47,6 +48,7 @@ function Inventario ()
         if(e.target.files && e.target.files[0])
         {
             setFormData(prev => ({...prev, imagen: e.target.files[0]}));
+            setPreview(URL.createObjectURL(e.target.files[0]));
         }
     };
 
@@ -64,6 +66,7 @@ function Inventario ()
             es_servicio: producto.es_servicio || false,
             imagen: null
         });
+        setPreview(producto.imagen_url);
         window.scrollTo({top: 0, behavior: 'smooth'});
         toast("Modo edición activado", {icon: '✏️'});
     };
@@ -75,6 +78,7 @@ function Inventario ()
             codigo_barras: '', nombre: '', precio_costo: '', precio_venta: '',
             stock_actual: '', stock_minimo: 5, categoria: 'Libreria', es_servicio: false, imagen: null
         });
+        setPreview(null);
         if(fileInputRef.current) fileInputRef.current.value = "";
     };
 
@@ -190,7 +194,12 @@ function Inventario ()
 
                     <div className="md:col-span-4">
                         <label className="text-xs font-bold text-gray-500 uppercase ml-1">Imagen</label>
-                        <input type="file" ref={fileInputRef} accept="image/*" onChange={handleFileChange} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm" />
+                        <div className="flex items-center gap-3">
+                            {preview && (
+                                <img src={preview} alt="Preview" className="w-10 h-10 rounded-lg object-cover border border-gray-200 bg-gray-50" />
+                            )}
+                            <input type="file" ref={fileInputRef} accept="image/*" onChange={handleFileChange} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm" />
+                        </div>
                     </div>
 
                     <div className="md:col-span-2">
