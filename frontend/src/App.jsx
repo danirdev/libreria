@@ -1,4 +1,5 @@
 import {useState, useEffect} from 'react';
+import {Toaster} from 'react-hot-toast';
 import {ShoppingCart, Package, DollarSign, BarChart2, Users, LogOut, Menu, X, User} from 'lucide-react';
 import Inventario from './pages/Inventario';
 import Ventas from './pages/Ventas';
@@ -47,6 +48,8 @@ function App ()
 
   return (
     <div className="flex h-screen bg-gray-50/50 font-sans overflow-hidden">
+
+      <Toaster position="bottom-right" reverseOrder={false} />
 
       {/* SIDEBAR (Barra Lateral) */}
       <aside className={`

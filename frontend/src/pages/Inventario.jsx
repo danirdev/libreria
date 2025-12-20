@@ -1,5 +1,7 @@
 import {useState, useEffect, useRef} from 'react';
 import api from '../api';
+// 1. IMPORTAR TOAST
+import toast from 'react-hot-toast';
 import {Package, Search, Plus, Trash2, Edit2, AlertCircle, Barcode, DollarSign, Image as ImageIcon, X, Save, Tag} from 'lucide-react';
 
 function Inventario ()
@@ -8,20 +10,11 @@ function Inventario ()
     const [busqueda, setBusqueda] = useState('');
     const [loading, setLoading] = useState(false);
     const fileInputRef = useRef(null);
-
-    // Estado para saber si estamos editando (null = creando)
     const [editId, setEditId] = useState(null);
 
-    // Formulario completo (Coincide con tu Backend)
     const [formData, setFormData] = useState({
-        codigo_barras: '',
-        nombre: '',
-        precio_costo: '',
-        precio_venta: '',
-        stock_actual: '',
-        categoria: '',
-        es_servicio: false,
-        imagen: null // Aquí se guarda el archivo real
+        codigo_barras: '', nombre: '', precio_costo: '', precio_venta: '',
+        stock_actual: '', categoria: '', es_servicio: false, imagen: null
     });
 
     useEffect(() => {cargarProductos();}, []);
@@ -32,20 +25,19 @@ function Inventario ()
         {
             const res = await api.get('/productos');
             setProductos(res.data);
-        } catch(err) {console.error("Error cargando productos:", err);}
+        } catch(err)
+        {
+            console.error("Error cargando:", err);
+            toast.error("Error al cargar productos"); // Notificación de error silenciosa
+        }
     };
 
-    // Maneja los inputs de texto
     const handleChange = (e) =>
     {
         const {name, value, type, checked} = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value
-        }));
+        setFormData(prev => ({...prev, [name]: type === 'checkbox' ? checked : value}));
     };
 
-    // Maneja la selección de la imagen
     const handleFileChange = (e) =>
     {
         if(e.target.files && e.target.files[0])
@@ -54,7 +46,6 @@ function Inventario ()
         }
     };
 
-    // Cargar datos en el formulario para editar
     const iniciarEdicion = (producto) =>
     {
         setEditId(producto.id);
@@ -66,9 +57,10 @@ function Inventario ()
             stock_actual: producto.stock_actual,
             categoria: producto.categoria || '',
             es_servicio: producto.es_servicio || false,
-            imagen: null // La imagen no se resetea visualmente, solo si suben una nueva
+            imagen: null
         });
-        window.scrollTo({top: 0, behavior: 'smooth'}); // Subir al formulario
+        window.scrollTo({top: 0, behavior: 'smooth'});
+        toast("Modo edición activado", {icon: '✏️'}); // Notificación simple
     };
 
     const cancelarEdicion = () =>
@@ -86,64 +78,66 @@ function Inventario ()
         e.preventDefault();
         setLoading(true);
 
-        try
+        // Creamos la promesa de la petición
+        const guardarPromesa = new Promise(async (resolve, reject) =>
         {
-            // Usamos FormData porque vamos a enviar un archivo (imagen)
-            const data = new FormData();
-            data.append('codigo_barras', formData.codigo_barras);
-            data.append('nombre', formData.nombre);
-            data.append('precio_costo', formData.precio_costo);
-            data.append('precio_venta', formData.precio_venta);
-            data.append('stock_actual', formData.stock_actual);
-            data.append('categoria', formData.categoria);
-            data.append('es_servicio', formData.es_servicio);
-
-            if(formData.imagen)
+            try
             {
-                data.append('imagen', formData.imagen); // Debe coincidir con upload.single('imagen') del backend
-            }
-
-            if(editId)
-            {
-                // ACTUALIZAR (PUT)
-                await api.put(`/productos/${editId}`, data, {
-                    headers: {'Content-Type': 'multipart/form-data'}
+                const data = new FormData();
+                Object.keys(formData).forEach(key =>
+                {
+                    if(key === 'imagen' && formData[key]) data.append(key, formData[key]);
+                    else if(key !== 'imagen') data.append(key, formData[key]);
                 });
-                alert("Producto actualizado correctamente ✨");
-            } else
+
+                if(editId)
+                {
+                    await api.put(`/productos/${editId}`, data, {headers: {'Content-Type': 'multipart/form-data'}});
+                } else
+                {
+                    await api.post('/productos', data, {headers: {'Content-Type': 'multipart/form-data'}});
+                }
+
+                cancelarEdicion();
+                cargarProductos();
+                resolve(); // ¡Éxito!
+            } catch(err)
             {
-                // CREAR (POST)
-                await api.post('/productos', data, {
-                    headers: {'Content-Type': 'multipart/form-data'}
-                });
-                alert("Producto creado correctamente ✅");
+                console.error(err);
+                reject(err); // ¡Error!
+            } finally
+            {
+                setLoading(false);
             }
+        });
 
-            cancelarEdicion();
-            cargarProductos();
-
-        } catch(err)
-        {
-            console.error(err);
-            alert("Error al guardar. Revisa la consola.");
-        } finally
-        {
-            setLoading(false);
-        }
+        // 2. MAGIA DE TOAST.PROMISE: Muestra Cargando -> Éxito/Error automáticamente
+        toast.promise(guardarPromesa, {
+            loading: 'Guardando producto...',
+            success: <b>{editId ? '¡Producto actualizado!' : '¡Producto creado!'}</b>,
+            error: <b>Error al guardar. Intenta de nuevo.</b>,
+        });
     };
 
     const eliminarProducto = async (id) =>
     {
+        // Nota: Para confirmaciones, el "confirm" nativo sigue siendo lo más seguro y rápido,
+        // pero hay formas de hacerlo con Toast customizados si prefieres.
         if(!confirm("¿Seguro que deseas eliminar este producto?")) return;
-        try
-        {
-            await api.delete(`/productos/${id}`);
-            cargarProductos();
-        } catch(err)
-        {
-            alert("No se pudo eliminar (es posible que tenga ventas registradas).");
-        }
+
+        const promesaEliminar = api.delete(`/productos/${id}`)
+            .then(() => cargarProductos());
+
+        toast.promise(promesaEliminar, {
+            loading: 'Eliminando...',
+            success: 'Producto eliminado',
+            error: 'No se pudo eliminar (¿tiene ventas?)',
+        });
     };
+
+    // ... (El resto del return es idéntico al anterior) ...
+    // Solo asegúrate de copiar el return completo de la respuesta anterior si lo necesitas
+    // O mantén tu return actual si ya lo tienes bien.
 
     const productosFiltrados = productos.filter(p =>
         p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -151,10 +145,15 @@ function Inventario ()
     );
 
     return (
+        // ... Tu JSX de siempre ...
         <div className="space-y-6 animate-fade-in font-sans pb-12">
+            {/* ... (El código del formulario y tabla que ya tenías) ... */}
+            {/* ... Si quieres que te pase el JSX completo de nuevo avísame, pero es igual al anterior ... */}
 
-            {/* --- FORMULARIO DE GESTIÓN --- */}
+            {/* SOLO UN CAMBIO EN EL BOTÓN PARA QUE SE VEA MEJOR EL LOADING (Opcional) */}
+            {/* En el botón guardar, ya no necesitamos mostrar "Guardando..." en texto porque el Toast lo hace */}
             <div className={`p-6 rounded-2xl shadow-sm border transition-colors ${editId ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-100'}`}>
+                {/* ... cabecera ... */}
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <div className={`p-2.5 rounded-lg ${editId ? 'bg-blue-200 text-blue-700' : 'bg-primary-100 text-primary-600'}`}>
@@ -175,6 +174,7 @@ function Inventario ()
                 </div>
 
                 <form onSubmit={guardarProducto} className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+                    {/* ... Inputs iguales ... */}
 
                     {/* Código de Barras */}
                     <div className="md:col-span-2">
@@ -266,9 +266,9 @@ function Inventario ()
                             type="submit"
                             disabled={loading}
                             className={`w-full font-bold py-2.5 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 h-[42px] text-white
-                        ${editId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-primary-600 hover:bg-primary-700'}`}
+                            ${editId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-primary-600 hover:bg-primary-700'}`}
                         >
-                            {loading ? 'Guardando...' : (editId ? <><Save size={18} /> Actualizar Producto</> : <><Plus size={20} /> Agregar al Inventario</>)}
+                            {loading ? '...' : (editId ? <><Save size={18} /> Actualizar Producto</> : <><Plus size={20} /> Agregar al Inventario</>)}
                         </button>
                     </div>
                 </form>
@@ -276,7 +276,6 @@ function Inventario ()
 
             {/* --- TABLA DE PRODUCTOS --- */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[600px]">
-
                 {/* Buscador Tabla */}
                 <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between gap-4">
                     <div className="relative w-full max-w-md">
