@@ -60,14 +60,14 @@ function Clientes ()
         <div className="space-y-6 animate-fade-in">
 
             {/* CABECERA */}
-            <div className="flex flex-col md:flex-row justify-between items-end gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div className="flex flex-col md:flex-row justify-between items-end gap-4 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
                 <div className="flex items-center gap-4">
-                    <div className="bg-primary-100 p-3 rounded-xl text-primary-600">
+                    <div className="bg-primary-100 dark:bg-primary-900/40 p-3 rounded-xl text-primary-600 dark:text-primary-300">
                         <Users size={28} />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-800">Clientes</h1>
-                        <p className="text-gray-500">Gestión de cuentas corrientes</p>
+                        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Clientes</h1>
+                        <p className="text-gray-500 dark:text-gray-400">Gestión de cuentas corrientes</p>
                     </div>
                 </div>
                 <button
@@ -81,17 +81,17 @@ function Clientes ()
 
             {/* FORMULARIO DESPLEGABLE */}
             {mostrarForm && (
-                <div className="bg-primary-50 border border-primary-100 p-6 rounded-2xl animate-slide-up">
+                <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800 p-6 rounded-2xl animate-slide-up">
                     <form onSubmit={crearCliente} className="flex flex-col md:flex-row gap-4 items-end">
                         <div className="flex-1 w-full">
-                            <label className="text-xs font-bold text-primary-800 uppercase ml-1">Nombre Completo</label>
+                            <label className="text-xs font-bold text-primary-800 dark:text-primary-200 uppercase ml-1">Nombre Completo</label>
                             <input type="text" placeholder="Ej: Juan Pérez" value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} required
-                                className="w-full p-3 rounded-xl border border-primary-200 focus:ring-2 focus:ring-primary-400 outline-none" />
+                                className="w-full p-3 rounded-xl border border-primary-200 dark:border-primary-700 dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-primary-400 outline-none" />
                         </div>
                         <div className="flex-1 w-full">
-                            <label className="text-xs font-bold text-primary-800 uppercase ml-1">Teléfono</label>
+                            <label className="text-xs font-bold text-primary-800 dark:text-primary-200 uppercase ml-1">Teléfono</label>
                             <input type="text" placeholder="Ej: 388-1234567" value={nuevoTel} onChange={e => setNuevoTel(e.target.value)}
-                                className="w-full p-3 rounded-xl border border-primary-200 focus:ring-2 focus:ring-primary-400 outline-none" />
+                                className="w-full p-3 rounded-xl border border-primary-200 dark:border-primary-700 dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-primary-400 outline-none" />
                         </div>
                         <button type="submit" className="bg-primary-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-primary-700 transition-all shadow-md">
                             Guardar
@@ -111,41 +111,41 @@ function Clientes ()
                             placeholder="Buscar cliente..."
                             value={busqueda}
                             onChange={(e) => setBusqueda(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-primary-400 outline-none text-lg"
+                            className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm focus:ring-2 focus:ring-primary-400 outline-none text-lg text-gray-800 dark:text-white dark:placeholder-gray-500"
                         />
                     </div>
                 </div>
 
                 {clientesFiltrados.map(c => (
-                    <div key={c.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all group flex flex-col justify-between">
+                    <div key={c.id} className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all group flex flex-col justify-between">
                         <div>
                             <div className="flex justify-between items-start mb-3">
-                                <div className="bg-gray-100 p-2 rounded-full text-gray-500 group-hover:bg-primary-100 group-hover:text-primary-600 transition-colors">
+                                <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded-full text-gray-500 dark:text-gray-400 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                                     <User size={20} />
                                 </div>
                                 {parseFloat(c.saldo_deudor) > 0 && (
-                                    <span className="bg-red-50 text-red-600 text-xs font-bold px-2 py-1 rounded-full border border-red-100">
+                                    <span className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-xs font-bold px-2 py-1 rounded-full border border-red-100 dark:border-red-800">
                                         Debe Dinero
                                     </span>
                                 )}
                             </div>
-                            <h3 className="font-bold text-lg text-gray-800">{c.nombre}</h3>
-                            <div className="flex items-center gap-2 text-gray-400 text-sm mt-1">
+                            <h3 className="font-bold text-lg text-gray-800 dark:text-white">{c.nombre}</h3>
+                            <div className="flex items-center gap-2 text-gray-400 dark:text-gray-500 text-sm mt-1">
                                 <Phone size={14} /> {c.telefono || 'Sin teléfono'}
                             </div>
                         </div>
 
-                        <div className="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
+                        <div className="mt-6 pt-4 border-t border-gray-50 dark:border-gray-700 flex items-center justify-between">
                             <div>
-                                <p className="text-xs text-gray-400 font-bold uppercase">Saldo Actual</p>
-                                <p className={`text-xl font-black ${parseFloat(c.saldo_deudor) > 0 ? 'text-red-500' : 'text-green-500'}`}>
+                                <p className="text-xs text-gray-400 dark:text-gray-500 font-bold uppercase">Saldo Actual</p>
+                                <p className={`text-xl font-black ${parseFloat(c.saldo_deudor) > 0 ? 'text-red-500 dark:text-red-400' : 'text-green-500 dark:text-green-400'}`}>
                                     ${c.saldo_deudor}
                                 </p>
                             </div>
                             {parseFloat(c.saldo_deudor) > 0 && (
                                 <button
                                     onClick={() => registrarPago(c)}
-                                    className="bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 font-bold py-2 px-4 rounded-lg text-sm transition-all flex items-center gap-1"
+                                    className="bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800 font-bold py-2 px-4 rounded-lg text-sm transition-all flex items-center gap-1"
                                 >
                                     <DollarSign size={16} /> Pagar
                                 </button>

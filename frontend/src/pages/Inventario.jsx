@@ -132,56 +132,56 @@ function Inventario ()
 
     return (
         <div className="space-y-6 animate-fade-in font-sans pb-12">
-            <div className={`p-6 rounded-2xl shadow-sm border transition-colors ${editId ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-100'}`}>
+            <div className={`p-6 rounded-2xl shadow-sm border transition-colors ${editId ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700'}`}>
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                        <div className={`p-2.5 rounded-lg ${editId ? 'bg-blue-200 text-blue-700' : 'bg-primary-100 text-primary-600'}`}>
+                        <div className={`p-2.5 rounded-lg ${editId ? 'bg-blue-200 dark:bg-blue-800 text-blue-700 dark:text-blue-100' : 'bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-300'}`}>
                             {editId ? <Edit2 size={24} /> : <Package size={24} />}
                         </div>
                         <div>
-                            <h1 className={`text-xl font-bold ${editId ? 'text-blue-800' : 'text-gray-800'}`}>
+                            <h1 className={`text-xl font-bold ${editId ? 'text-blue-800 dark:text-blue-200' : 'text-gray-800 dark:text-white'}`}>
                                 {editId ? 'Editando Producto' : 'Nuevo Producto'}
                             </h1>
-                            <p className="text-sm text-gray-500">Gestión de inventario y servicios</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Gestión de inventario y servicios</p>
                         </div>
                     </div>
-                    {editId && <button onClick={cancelarEdicion}><X size={16} /></button>}
+                    {editId && <button onClick={cancelarEdicion} className="text-gray-500 hover:text-red-500 dark:text-gray-400"><X size={16} /></button>}
                 </div>
 
                 <form onSubmit={guardarProducto} className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
 
                     {/* Código */}
                     <div className="md:col-span-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase ml-1">Código</label>
-                        <input type="text" name="codigo_barras" value={formData.codigo_barras} onChange={handleChange} className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl outline-none focus:border-primary-500" placeholder="Escanear..." />
+                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Código</label>
+                        <input type="text" name="codigo_barras" value={formData.codigo_barras} onChange={handleChange} className="w-full px-3 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none focus:border-primary-500 dark:focus:border-primary-400 dark:text-white" placeholder="Escanear..." />
                     </div>
                     {/* Nombre */}
                     <div className="md:col-span-4">
-                        <label className="text-xs font-bold text-gray-500 uppercase ml-1">Nombre</label>
-                        <input type="text" name="nombre" value={formData.nombre} onChange={handleChange} required className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl outline-none focus:border-primary-500" placeholder="Nombre del producto" />
+                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Nombre</label>
+                        <input type="text" name="nombre" value={formData.nombre} onChange={handleChange} required className="w-full px-3 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none focus:border-primary-500 dark:focus:border-primary-400 dark:text-white" placeholder="Nombre del producto" />
                     </div>
                     {/* Categoría */}
                     <div className="md:col-span-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase ml-1">Categoría</label>
-                        <select name="categoria" value={formData.categoria} onChange={handleChange} className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl outline-none focus:border-primary-500">
+                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Categoría</label>
+                        <select name="categoria" value={formData.categoria} onChange={handleChange} className="w-full px-3 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none focus:border-primary-500 dark:focus:border-primary-400 dark:text-white">
                             {CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                     </div>
                     {/* Costo */}
                     <div className="md:col-span-1">
-                        <label className="text-xs font-bold text-gray-500 uppercase ml-1">Costo</label>
-                        <input type="number" name="precio_costo" value={formData.precio_costo} onChange={handleChange} step="0.01" className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl outline-none focus:border-primary-500" placeholder="0.00" />
+                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Costo</label>
+                        <input type="number" name="precio_costo" value={formData.precio_costo} onChange={handleChange} step="0.01" className="w-full px-3 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none focus:border-primary-500 dark:focus:border-primary-400 dark:text-white" placeholder="0.00" />
                     </div>
                     {/* Venta */}
                     <div className="md:col-span-1">
-                        <label className="text-xs font-bold text-gray-500 uppercase ml-1">Venta</label>
-                        <input type="number" name="precio_venta" value={formData.precio_venta} onChange={handleChange} required step="0.01" className="w-full px-3 py-2.5 bg-white border border-green-200 rounded-xl outline-none focus:border-green-500 font-bold text-green-700" placeholder="0.00" />
+                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Venta</label>
+                        <input type="number" name="precio_venta" value={formData.precio_venta} onChange={handleChange} required step="0.01" className="w-full px-3 py-2.5 bg-white dark:bg-gray-700 border border-green-200 dark:border-green-800 rounded-xl outline-none focus:border-green-500 font-bold text-green-700 dark:text-green-400" placeholder="0.00" />
                     </div>
 
                     {/* Stock y Checkbox Servicio */}
                     <div className="md:col-span-1">
-                        <label className="text-xs font-bold text-gray-500 uppercase ml-1">Stock</label>
-                        <input type="number" name="stock_actual" value={formData.stock_actual} onChange={handleChange} required className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl outline-none focus:border-primary-500" placeholder="0" />
+                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Stock</label>
+                        <input type="number" name="stock_actual" value={formData.stock_actual} onChange={handleChange} required className="w-full px-3 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none focus:border-primary-500 dark:focus:border-primary-400 dark:text-white" placeholder="0" />
                     </div>
 
                     {/* CHECKBOX DE SERVICIO INTEGRADO */}
@@ -192,9 +192,9 @@ function Inventario ()
                                 name="es_servicio"
                                 checked={formData.es_servicio}
                                 onChange={handleChange}
-                                className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500 border-gray-300 cursor-pointer"
+                                className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700 cursor-pointer"
                             />
-                            <span className="text-xs font-bold text-gray-600 uppercase">¿Es Servicio?</span>
+                            <span className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">¿Es Servicio?</span>
                         </label>
                     </div>
 
@@ -205,7 +205,7 @@ function Inventario ()
                             <AlertTriangle size={14} className="absolute left-3 top-3 text-red-300" />
                             <input
                                 type="number" name="stock_minimo" value={formData.stock_minimo} onChange={handleChange}
-                                className="w-full pl-8 pr-3 py-2.5 bg-red-50 border border-red-100 rounded-xl outline-none focus:border-red-300 text-red-600 font-medium"
+                                className="w-full pl-8 pr-3 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-xl outline-none focus:border-red-300 text-red-600 dark:text-red-300 font-medium"
                                 placeholder="5"
                             />
                         </div>
@@ -213,18 +213,18 @@ function Inventario ()
 
                     {/* Imagen */}
                     <div className="md:col-span-4">
-                        <label className="text-xs font-bold text-gray-500 uppercase ml-1">Imagen</label>
+                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Imagen</label>
                         <div className="flex items-center gap-3">
                             {preview && (
-                                <img src={preview} alt="Preview" className="w-10 h-10 rounded-lg object-cover border border-gray-200 bg-gray-50" />
+                                <img src={preview} alt="Preview" className="w-10 h-10 rounded-lg object-cover border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700" />
                             )}
-                            <input type="file" ref={fileInputRef} accept="image/*" onChange={handleFileChange} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm" />
+                            <input type="file" ref={fileInputRef} accept="image/*" onChange={handleFileChange} className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm dark:text-gray-300" />
                         </div>
                     </div>
 
                     {/* Botón */}
                     <div className="md:col-span-2">
-                        <button type="submit" disabled={loading} className={`w-full font-bold py-2.5 rounded-xl shadow-md text-white ${editId ? 'bg-blue-600' : 'bg-primary-600'}`}>
+                        <button type="submit" disabled={loading} className={`w-full font-bold py-2.5 rounded-xl shadow-md text-white ${editId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-primary-600 hover:bg-primary-700'}`}>
                             {loading ? '...' : (editId ? 'Actualizar' : 'Agregar')}
                         </button>
                     </div>
@@ -232,15 +232,15 @@ function Inventario ()
             </div>
 
             {/* TABLA */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[600px]">
-                <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between gap-4">
-                    <input type="text" placeholder="Buscar..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full p-2 bg-white border rounded-lg" />
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col h-[600px]">
+                <div className="p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex items-center justify-between gap-4">
+                    <input type="text" placeholder="Buscar..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full p-2 bg-white dark:bg-gray-700 border dark:border-gray-600 rounded-lg dark:text-white outline-none focus:border-primary-500" />
                     <div className="text-xs font-bold text-gray-400">{productosFiltrados.length} Items</div>
                 </div>
 
                 <div className="overflow-y-auto flex-1">
                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-gray-50 sticky top-0 z-10 text-xs font-bold text-gray-500 uppercase">
+                        <thead className="bg-gray-50 dark:bg-gray-700/50 sticky top-0 z-10 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
                             <tr>
                                 <th className="p-3 w-16">Img</th>
                                 <th className="p-3">Producto</th>
@@ -250,46 +250,46 @@ function Inventario ()
                                 <th className="p-3 text-center">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 text-sm">
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700 text-sm">
                             {productosFiltrados.map(p => (
-                                <tr key={p.id} className={`hover:bg-gray-50 ${editId === p.id ? 'bg-blue-50' : ''}`}>
+                                <tr key={p.id} className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 ${editId === p.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}>
                                     <td className="p-3">
                                         {p.imagen_url ? (
-                                            <img src={p.imagen_url} alt="" className="w-10 h-10 rounded-lg object-cover border border-gray-200 bg-white" />
+                                            <img src={p.imagen_url} alt="" className="w-10 h-10 rounded-lg object-cover border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700" />
                                         ) : (
-                                            <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-300">
+                                            <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-300 dark:text-gray-500">
                                                 <ImageIcon size={16} />
                                             </div>
                                         )}
                                     </td>
                                     <td className="p-3">
-                                        <div className="font-medium text-gray-800">{p.nombre}</div>
+                                        <div className="font-medium text-gray-800 dark:text-gray-200">{p.nombre}</div>
                                         {/* Mostramos si es servicio en el listado */}
                                         <div className="flex gap-2">
-                                            <span className="text-xs text-gray-500">{p.codigo_barras}</span>
-                                            {p.es_servicio && <span className="text-[10px] bg-purple-100 text-purple-700 px-1 rounded border border-purple-200">SERVICIO</span>}
+                                            <span className="text-xs text-gray-500 dark:text-gray-500">{p.codigo_barras}</span>
+                                            {p.es_servicio && <span className="text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1 rounded border border-purple-200 dark:border-purple-800">SERVICIO</span>}
                                         </div>
                                     </td>
-                                    <td className="p-3 text-right font-bold">${p.precio_venta}</td>
-                                    <td className="p-3 text-center">{p.es_servicio ? '∞' : p.stock_actual}</td>
+                                    <td className="p-3 text-right font-bold dark:text-gray-200">${p.precio_venta}</td>
+                                    <td className="p-3 text-center dark:text-gray-300">{p.es_servicio ? '∞' : p.stock_actual}</td>
 
                                     <td className="p-3 text-center">
                                         {p.es_servicio ? (
-                                            <span className="bg-purple-50 text-purple-600 px-2 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1 w-fit mx-auto">
+                                            <span className="bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-300 px-2 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1 w-fit mx-auto">
                                                 <Layers size={10} /> Servicio
                                             </span>
                                         ) : p.stock_actual <= (p.stock_minimo || 5) ? (
-                                            <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1 w-fit mx-auto">
+                                            <span className="bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 px-2 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1 w-fit mx-auto">
                                                 <AlertTriangle size={10} /> Reponer
                                             </span>
                                         ) : (
-                                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold">OK</span>
+                                            <span className="bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-2 py-1 rounded-full text-xs font-bold">OK</span>
                                         )}
                                     </td>
 
                                     <td className="p-3 flex justify-center gap-2">
-                                        <button onClick={() => iniciarEdicion(p)} className="text-blue-600 hover:bg-blue-100 p-1 rounded"><Edit2 size={16} /></button>
-                                        {esAdmin && <button onClick={() => eliminarProducto(p.id)} className="text-gray-400 hover:text-red-600 hover:bg-red-50 p-1 rounded"><Trash2 size={16} /></button>}
+                                        <button onClick={() => iniciarEdicion(p)} className="text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 p-1 rounded"><Edit2 size={16} /></button>
+                                        {esAdmin && <button onClick={() => eliminarProducto(p.id)} className="text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded"><Trash2 size={16} /></button>}
                                     </td>
                                 </tr>
                             ))}

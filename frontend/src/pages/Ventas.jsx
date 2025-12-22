@@ -163,7 +163,7 @@ function Ventas ()
 
             {/* IZQUIERDA: BUSCADOR */}
             <div className="flex-1 flex flex-col gap-4">
-                <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-3">
                     <Search className="text-gray-400" />
                     <input
                         ref={inputRef}
@@ -172,27 +172,27 @@ function Ventas ()
                         value={busqueda}
                         onChange={buscarProducto}
                         autoFocus
-                        className="w-full outline-none text-lg text-gray-700 placeholder-gray-400"
+                        className="w-full outline-none text-lg text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 bg-transparent"
                     />
                 </div>
 
-                <div className="flex-1 bg-white/50 rounded-2xl border border-gray-100/50 p-4 overflow-y-auto">
+                <div className="flex-1 bg-white/50 dark:bg-gray-800/50 rounded-2xl border border-gray-100/50 dark:border-gray-700/50 p-4 overflow-y-auto">
                     {resultados.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                             {resultados.map(prod => (
                                 <div
                                     key={prod.id}
                                     onClick={() => agregarAlCarrito(prod)}
-                                    className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-md hover:border-primary-200 transition-all group"
+                                    className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 cursor-pointer hover:shadow-md hover:border-primary-200 dark:hover:border-primary-600 transition-all group"
                                 >
                                     <div className="flex justify-between items-start mb-2">
-                                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${prod.es_servicio ? 'bg-purple-50 text-purple-700' : (prod.stock_actual > 0 ? 'bg-primary-50 text-primary-700' : 'bg-red-50 text-red-700')}`}>
+                                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${prod.es_servicio ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' : (prod.stock_actual > 0 ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300' : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300')}`}>
                                             {prod.es_servicio ? 'Servicio' : `Stock: ${prod.stock_actual}`}
                                         </span>
-                                        <Plus size={20} className="text-gray-300 group-hover:text-primary-500" />
+                                        <Plus size={20} className="text-gray-300 group-hover:text-primary-500 dark:text-gray-600 dark:group-hover:text-primary-400" />
                                     </div>
-                                    <h3 className="font-semibold text-gray-800 line-clamp-2 mb-1">{prod.nombre}</h3>
-                                    <p className="text-xl font-bold text-primary-600">${prod.precio_venta}</p>
+                                    <h3 className="font-semibold text-gray-800 dark:text-gray-200 line-clamp-2 mb-1">{prod.nombre}</h3>
+                                    <p className="text-xl font-bold text-primary-600 dark:text-primary-400">${prod.precio_venta}</p>
                                 </div>
                             ))}
                         </div>
@@ -206,7 +206,7 @@ function Ventas ()
             </div>
 
             {/* DERECHA: TICKET */}
-            <div className="w-full lg:w-[450px] bg-white rounded-2xl shadow-xl border border-gray-100 flex flex-col overflow-hidden">
+            <div className="w-full lg:w-[450px] bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 flex flex-col overflow-hidden">
                 <div className="bg-primary-600 p-4 text-white flex justify-between items-center shadow-md z-10">
                     <div className="flex items-center gap-2">
                         <ShoppingCart size={20} />
@@ -215,7 +215,7 @@ function Ventas ()
                     <span className="bg-white/20 px-3 py-1 rounded-full text-sm font-medium">{carrito.length} Items</span>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/50">
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/50 dark:bg-gray-900/50">
                     {carrito.length === 0 ? (
                         <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-2">
                             <ShoppingCart size={40} className="opacity-20" />
@@ -223,32 +223,32 @@ function Ventas ()
                         </div>
                     ) : (
                         carrito.map((item, i) => (
-                            <div key={i} className="flex flex-col bg-white p-3 rounded-xl shadow-sm border border-gray-100 gap-3">
+                            <div key={i} className="flex flex-col bg-white dark:bg-gray-700 p-3 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600 gap-3">
 
                                 {/* 1. Nombre y Eliminar */}
                                 <div className="flex justify-between items-start">
-                                    <span className="text-sm font-medium text-gray-700 line-clamp-2">{item.nombre}</span>
-                                    <button onClick={() => eliminarDelCarrito(item.id)} className="text-gray-300 hover:text-red-500 p-1">
+                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200 line-clamp-2">{item.nombre}</span>
+                                    <button onClick={() => eliminarDelCarrito(item.id)} className="text-gray-300 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 p-1">
                                         <Trash2 size={16} />
                                     </button>
                                 </div>
 
                                 {/* 2. Controles de Precio y Cantidad */}
-                                <div className="flex justify-between items-center bg-gray-50 p-2 rounded-lg">
+                                <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-800 p-2 rounded-lg">
 
                                     {/* CANTIDAD */}
                                     <div className="flex items-center gap-1">
-                                        <button onClick={() => actualizarCantidad(item.id, item.cantidad - 1, item.stock_actual, item.es_servicio)} className="w-6 h-6 bg-white border border-gray-200 rounded hover:bg-gray-100 flex items-center justify-center text-gray-600"><Minus size={12} /></button>
+                                        <button onClick={() => actualizarCantidad(item.id, item.cantidad - 1, item.stock_actual, item.es_servicio)} className="w-6 h-6 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300"><Minus size={12} /></button>
                                         <input
                                             type="number" value={item.cantidad}
                                             onChange={(e) => actualizarCantidad(item.id, parseInt(e.target.value) || 0, item.stock_actual, item.es_servicio)}
-                                            className="w-10 text-center text-sm font-bold bg-transparent outline-none"
+                                            className="w-10 text-center text-sm font-bold bg-transparent outline-none dark:text-white"
                                         />
-                                        <button onClick={() => actualizarCantidad(item.id, item.cantidad + 1, item.stock_actual, item.es_servicio)} className="w-6 h-6 bg-white border border-gray-200 rounded hover:bg-gray-100 flex items-center justify-center text-gray-600"><Plus size={12} /></button>
+                                        <button onClick={() => actualizarCantidad(item.id, item.cantidad + 1, item.stock_actual, item.es_servicio)} className="w-6 h-6 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300"><Plus size={12} /></button>
                                         <span className="text-xs text-gray-400 ml-1">unid.</span>
                                     </div>
 
-                                    <span className="text-gray-300">|</span>
+                                    <span className="text-gray-300 dark:text-gray-600">|</span>
 
                                     {/* PRECIO EDITABLE (La magia está aquí) */}
                                     <div className="flex items-center gap-1">
@@ -257,7 +257,7 @@ function Ventas ()
                                             type="number"
                                             value={item.precio_venta}
                                             onChange={(e) => actualizarPrecio(item.id, e.target.value)}
-                                            className="w-16 text-right text-sm font-bold text-primary-700 bg-white border border-gray-200 rounded px-1 outline-none focus:border-primary-400"
+                                            className="w-16 text-right text-sm font-bold text-primary-700 dark:text-primary-400 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded px-1 outline-none focus:border-primary-400"
                                         />
                                     </div>
 
@@ -266,28 +266,28 @@ function Ventas ()
                                 {/* 3. Subtotal Renglón */}
                                 <div className="text-right">
                                     <span className="text-xs text-gray-400 mr-2">Subtotal:</span>
-                                    <span className="font-bold text-gray-800">${(item.precio_venta * item.cantidad).toFixed(2)}</span>
+                                    <span className="font-bold text-gray-800 dark:text-white">${(item.precio_venta * item.cantidad).toFixed(2)}</span>
                                 </div>
                             </div>
                         ))
                     )}
                 </div>
 
-                <div className="bg-white p-5 border-t border-gray-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
+                <div className="bg-white dark:bg-gray-800 p-5 border-t border-gray-100 dark:border-gray-700 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
                     <div className="flex justify-between items-end mb-4">
-                        <span className="text-gray-500 font-medium">Total a Pagar</span>
-                        <span className="text-3xl font-black text-gray-800">${total.toFixed(2)}</span>
+                        <span className="text-gray-500 dark:text-gray-400 font-medium">Total a Pagar</span>
+                        <span className="text-3xl font-black text-gray-800 dark:text-white">${total.toFixed(2)}</span>
                     </div>
 
                     <div className="space-y-3">
                         <div className="grid grid-cols-3 gap-2">
-                            <button onClick={() => setMetodoPago('Efectivo')} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border text-xs font-bold transition-all ${metodoPago === 'Efectivo' ? 'bg-green-50 border-green-200 text-green-700' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+                            <button onClick={() => setMetodoPago('Efectivo')} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border text-xs font-bold transition-all ${metodoPago === 'Efectivo' ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 text-green-700 dark:text-green-400' : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
                                 <Banknote size={18} className="mb-1" /> Efectivo
                             </button>
-                            <button onClick={() => setMetodoPago('Transferencia')} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border text-xs font-bold transition-all ${metodoPago === 'Transferencia' ? 'bg-purple-50 border-purple-200 text-purple-700' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+                            <button onClick={() => setMetodoPago('Transferencia')} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border text-xs font-bold transition-all ${metodoPago === 'Transferencia' ? 'bg-purple-50 dark:bg-purple-900/30 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-400' : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
                                 <ArrowRightLeft size={18} className="mb-1" /> Transferencia
                             </button>
-                            <button onClick={() => setMetodoPago('Cuenta Corriente')} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border text-xs font-bold transition-all ${metodoPago === 'Cuenta Corriente' ? 'bg-orange-50 border-orange-200 text-orange-700' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+                            <button onClick={() => setMetodoPago('Cuenta Corriente')} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border text-xs font-bold transition-all ${metodoPago === 'Cuenta Corriente' ? 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400' : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
                                 <CreditCard size={18} className="mb-1" /> Fiado
                             </button>
                         </div>
@@ -296,14 +296,14 @@ function Ventas ()
                             <select
                                 value={clienteSeleccionado}
                                 onChange={(e) => setClienteSeleccionado(e.target.value)}
-                                className="w-full p-2.5 bg-orange-50 border border-orange-200 text-orange-800 rounded-lg text-sm outline-none animate-slide-up"
+                                className="w-full p-2.5 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-300 rounded-lg text-sm outline-none animate-slide-up"
                             >
                                 <option value="">-- Seleccionar Cliente --</option>
                                 {listaClientes.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                             </select>
                         )}
 
-                        <button onClick={cobrar} disabled={carrito.length === 0} className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all">
+                        <button onClick={cobrar} disabled={carrito.length === 0} className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all">
                             COBRAR
                         </button>
                     </div>
@@ -313,11 +313,11 @@ function Ventas ()
             {/* MODAL EXITO */}
             {mostrarModal && ultimaVenta && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-                    <div className="bg-white p-6 rounded-3xl shadow-2xl w-full max-w-sm text-center">
-                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <CheckCircle size={32} className="text-green-600" />
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-2xl w-full max-w-sm text-center">
+                        <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <CheckCircle size={32} className="text-green-600 dark:text-green-400" />
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-800 mb-1">¡Venta Exitosa!</h2>
+                        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-1">¡Venta Exitosa!</h2>
 
                         <div className="hidden">
                             <TicketImprimible ref={ticketRef} venta={ultimaVenta} items={ultimaVenta.items} total={ultimaVenta.total} fecha={ultimaVenta.fecha} />
@@ -327,7 +327,7 @@ function Ventas ()
                             <button onClick={handlePrint} className="flex-1 bg-primary-600 text-white font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2">
                                 <Printer size={18} /> Imprimir
                             </button>
-                            <button onClick={cerrarModal} className="flex-1 bg-gray-100 text-gray-700 font-semibold py-2.5 rounded-xl">
+                            <button onClick={cerrarModal} className="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-white font-semibold py-2.5 rounded-xl">
                                 Cerrar
                             </button>
                         </div>
