@@ -1,0 +1,13 @@
+INSTRUCCIONES PARA CREAR ACCESO DIRECTO EN EL ESCRITORIO
+======================================================
+
+1. Haga clic DERECHO sobre el archivo "INICIAR_SISTEMA.bat" que esta en esta carpeta.
+2. Seleccione "Enviar a" > "Escritorio (crear acceso directo)".
+3. Vaya a su Escritorio, verá el nuevo icono.
+4. Puede cambiarle el nombre (ej: "Sistema Libreria") y el icono si lo desea (Propiedades > Cambiar icono).
+
+USO DIARIO
+==========
+Solo haga doble clic en ese acceso directo.
+Se abriran dos ventanas negras (minimizadas) y su navegador con el sistema listo para usar.
+Cuando termine de usar el sistema, simplemente cierre las ventanas negras.
