@@ -4,10 +4,11 @@ import {TrendingUp, Calendar, AlertTriangle, Award, ArrowUpRight} from 'lucide-r
 
 function Dashboard ()
 {
-    // Mantenemos tus estados originales
-    const [resumen, setResumen] = useState({hoy: 0, mes: 0, stock_bajo: 0});
+    // Mantenemos tus estados originales + nuevos
+    const [resumen, setResumen] = useState({hoy: 0, semana: 0, mes: 0, anio: 0, stock_bajo: 0});
     const [topProductos, setTopProductos] = useState([]);
     const [ventasSemana, setVentasSemana] = useState([]);
+    const [ventasAnuales, setVentasAnuales] = useState([]);
 
     useEffect(() =>
     {
@@ -18,7 +19,6 @@ function Dashboard ()
     {
         try
         {
-            // Mantenemos tus llamadas a la API originales
             const res1 = await api.get('/stats/resumen');
             setResumen(res1.data);
 
@@ -27,6 +27,9 @@ function Dashboard ()
 
             const res3 = await api.get('/stats/ventas-semana');
             setVentasSemana(res3.data);
+
+            const res4 = await api.get('/stats/ventas-anuales');
+            setVentasAnuales(res4.data);
         } catch(error) {console.error("Error cargando stats", error);}
     };
 
@@ -52,68 +55,76 @@ function Dashboard ()
                     <h1 className="text-2xl font-bold text-gray-800">Resumen Ejecutivo</h1>
                     <p className="text-gray-500">Métricas clave de rendimiento en tiempo real</p>
                 </div>
-                <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100 flex items-center gap-2 text-sm font-medium text-gray-600">
-                    <Calendar size={16} />
-                    {new Date().toLocaleDateString()}
+                <div className="flex items-center gap-4">
+                    {resumen.stock_bajo > 0 && (
+                        <div className="bg-red-100 px-4 py-2 rounded-xl text-red-600 border border-red-200 flex items-center gap-2 text-sm font-bold animate-pulse">
+                            <AlertTriangle size={18} />
+                            {resumen.stock_bajo} Productos con Stock Bajo
+                        </div>
+                    )}
+                    <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100 flex items-center gap-2 text-sm font-medium text-gray-600">
+                        <Calendar size={16} />
+                        {new Date().toLocaleDateString()}
+                    </div>
                 </div>
             </div>
 
-            {/* TARJETAS SUPERIORES */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* TARJETAS SUPERIORES (KPIs) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <Card
                     title="Ventas Hoy"
                     value={`$${resumen.hoy}`}
                     icon={TrendingUp}
                     color="green"
-                    subtext="Ingresos diarios"
+                    subtext="Diario"
                 />
                 <Card
-                    title="Acumulado Mes"
+                    title="Esta Semana"
+                    value={`$${resumen.semana}`}
+                    icon={Calendar}
+                    color="purple"
+                    subtext="Lun-Dom"
+                />
+                <Card
+                    title="Este Mes"
                     value={`$${resumen.mes}`}
                     icon={Calendar}
                     color="blue"
-                    subtext="Este mes"
+                    subtext="Mensual"
                 />
                 <Card
-                    title="Alertas Stock"
-                    value={resumen.stock_bajo}
-                    icon={AlertTriangle}
+                    title="Este Año"
+                    value={`$${resumen.anio}`}
+                    icon={Award}
                     color="orange"
-                    subtext="Productos críticos"
+                    subtext="Anual"
                 />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                {/* TABLA TOP PRODUCTOS */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
+                {/* TABLA TOP PRODUCTOS (Ocupa 1 columna) */}
+                <div className="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                            <Award size={20} className="text-primary-500" /> Productos Estrella
+                            <Award size={20} className="text-yellow-500" /> Top Productos
                         </h3>
-                        <span className="text-xs font-bold text-gray-400 uppercase">Top 5</span>
                     </div>
 
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto flex-1">
                         <table className="w-full">
-                            <thead className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
-                                <tr>
-                                    <th className="px-4 py-3 text-left rounded-l-lg">Producto</th>
-                                    <th className="px-4 py-3 text-right rounded-r-lg">Unidades</th>
-                                </tr>
-                            </thead>
                             <tbody className="divide-y divide-gray-50">
                                 {topProductos.map((p, i) => (
                                     <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-                                        <td className="px-4 py-3">
+                                        <td className="px-2 py-3">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-xs font-bold">
+                                                <div className="w-6 h-6 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-xs font-bold">
                                                     {i + 1}
                                                 </div>
-                                                <span className="font-medium text-gray-700">{p.nombre}</span>
+                                                <span className="font-medium text-gray-700 text-sm truncate max-w-[120px]" title={p.nombre}>{p.nombre}</span>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3 text-right font-bold text-gray-800">
+                                        <td className="px-2 py-3 text-right font-bold text-gray-800 text-sm">
                                             {p.cantidad_total}
                                         </td>
                                     </tr>
@@ -126,54 +137,70 @@ function Dashboard ()
                     </div>
                 </div>
 
-                {/* GRÁFICO SEMANAL (Barras CSS Modernas) */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                {/* GRÁFICO SEMANAL (Ocupa 2 columnas) */}
+                <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                            <TrendingUp size={20} className="text-primary-500" /> Tendencia Semanal
+                            <TrendingUp size={20} className="text-primary-500" /> Últimos 7 Días
                         </h3>
-                        <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                            <ArrowUpRight size={18} className="text-gray-400" />
-                        </button>
                     </div>
 
-                    <div className="flex items-end justify-between h-64 gap-2 pt-4 border-b border-gray-50">
+                    <div className="flex items-end justify-between h-48 gap-4 pt-4 border-b border-gray-50">
                         {ventasSemana.map((dia, i) =>
                         {
-                            // Calculamos altura relativa (máximo 100%)
                             const maxVal = Math.max(...ventasSemana.map(d => parseFloat(d.total)), 100);
                             const altura = `${Math.round((parseFloat(dia.total) / maxVal) * 100)}%`;
-
                             return (
                                 <div key={i} className="flex-1 flex flex-col items-center gap-2 group cursor-pointer">
                                     <div className="w-full relative flex items-end justify-center h-full">
-                                        {/* Tooltip con valor */}
                                         <div className="absolute -top-8 bg-gray-800 text-white text-xs font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                                             ${dia.total}
                                         </div>
-                                        {/* Barra */}
-                                        <div
-                                            style={{height: altura}}
-                                            className="w-full max-w-[40px] bg-primary-200 group-hover:bg-primary-500 rounded-t-md transition-all duration-300 relative overflow-hidden"
-                                        >
-                                            <div className="absolute bottom-0 w-full h-1 bg-primary-300/30"></div>
-                                        </div>
+                                        <div style={{height: altura}} className="w-full max-w-[50px] bg-primary-200 group-hover:bg-primary-500 rounded-t-md transition-all duration-300 relative"></div>
                                     </div>
-                                    <span className="text-xs font-medium text-gray-400 group-hover:text-primary-600 transition-colors">
-                                        {new Date(dia.fecha).toLocaleDateString(undefined, {weekday: 'short'})}
-                                    </span>
+                                    <span className="text-xs font-medium text-gray-400 group-hover:text-primary-600">{new Date(dia.fecha).getDate()}</span>
                                 </div>
                             );
                         })}
                         {ventasSemana.length === 0 && (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                No hay ventas en los últimos 7 días
-                            </div>
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">Sin datos de semana</div>
                         )}
                     </div>
                 </div>
-
             </div>
+
+            {/* GRÁFICO ANUAL (Ancho completo) */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div className="flex items-center justify-between mb-6">
+                    <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                        <Calendar size={20} className="text-blue-500" /> Desempeño Mensual (Año Actual)
+                    </h3>
+                </div>
+
+                <div className="flex items-end justify-between h-56 gap-2 pt-4 border-b border-gray-50 overflow-x-auto">
+                    {ventasAnuales.map((mes, i) =>
+                    {
+                        const maxVal = Math.max(...ventasAnuales.map(m => parseFloat(m.total)), 100);
+                        const altura = `${Math.round((parseFloat(mes.total) / maxVal) * 100)}%`;
+
+                        return (
+                            <div key={i} className="flex-1 min-w-[40px] flex flex-col items-center gap-2 group cursor-pointer">
+                                <div className="w-full relative flex items-end justify-center h-full">
+                                    <div className="absolute -top-8 bg-gray-800 text-white text-xs font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                                        ${mes.total}
+                                    </div>
+                                    <div style={{height: altura}} className="w-full max-w-[60px] bg-blue-100 group-hover:bg-blue-500 rounded-t-md transition-all duration-300"></div>
+                                </div>
+                                <span className="text-xs font-medium text-gray-400 group-hover:text-blue-600">{mes.mes}</span>
+                            </div>
+                        );
+                    })}
+                    {ventasAnuales.length === 0 && (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">Sin datos anuales</div>
+                    )}
+                </div>
+            </div>
+
         </div>
     );
 }
