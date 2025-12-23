@@ -1,7 +1,7 @@
 import {useState, useEffect, useRef} from 'react';
 import api from '../api';
 import toast from 'react-hot-toast';
-import {Package, Search, Plus, Trash2, Edit2, AlertCircle, Barcode, DollarSign, Image as ImageIcon, X, Save, Tag, AlertTriangle, Layers, ArrowUpDown, ArrowUp, ArrowDown} from 'lucide-react';
+import {Package, Search, Plus, Trash2, Edit2, AlertCircle, Barcode, DollarSign, Image as ImageIcon, X, Save, Tag, AlertTriangle, Layers, ArrowUpDown, ArrowUp, ArrowDown, Minus} from 'lucide-react';
 
 function Inventario ()
 {
@@ -13,6 +13,7 @@ function Inventario ()
     const [esAdmin, setEsAdmin] = useState(false);
     const [preview, setPreview] = useState(null);
     const [sortConfig, setSortConfig] = useState({key: 'nombre', direction: 'asc'});
+    const [showModal, setShowModal] = useState(false); // Estado para el modal
 
     const CATEGORIAS = ["Libreria", "Fotocopias", "Cotillon", "Frescos", "Golosinas"];
 
@@ -68,12 +69,10 @@ function Inventario ()
             imagen: null
         });
         setPreview(producto.imagen_url);
-        window.scrollTo({top: 0, behavior: 'smooth'});
-        toast("Modo edición activado", {icon: '✏️'});
+        setShowModal(true); // Abrir modal
     };
 
-    const cancelarEdicion = () =>
-    {
+    const cerrarModal = () => {
         setEditId(null);
         setFormData({
             codigo_barras: '', nombre: '', precio_costo: '', precio_venta: '',
@@ -81,6 +80,7 @@ function Inventario ()
         });
         setPreview(null);
         if(fileInputRef.current) fileInputRef.current.value = "";
+        setShowModal(false);
     };
 
     const guardarProducto = async (e) =>
@@ -93,7 +93,6 @@ function Inventario ()
             try
             {
                 const data = new FormData();
-                // Importante: Convertir booleano a string para FormData si es necesario, o el backend lo maneja
                 Object.keys(formData).forEach(key =>
                 {
                     if(key === 'imagen' && formData[key]) data.append(key, formData[key]);
@@ -103,7 +102,7 @@ function Inventario ()
                 if(editId) await api.put(`/productos/${editId}`, data);
                 else await api.post('/productos', data);
 
-                cancelarEdicion();
+                cerrarModal();
                 cargarProductos();
                 resolve();
             } catch(err) {reject(err);} finally {setLoading(false);}
@@ -124,6 +123,31 @@ function Inventario ()
             cargarProductos();
             toast.success("Producto eliminado");
         });
+    };
+
+    // Función para ajuste rápido de stock
+    const ajustarStock = async (producto, delta) => {
+        if (producto.es_servicio) return;
+        const nuevoStock = parseInt(producto.stock_actual || 0) + delta;
+        if (nuevoStock < 0) return;
+
+        try {
+            const data = new FormData();
+            data.append('codigo_barras', producto.codigo_barras || '');
+            data.append('nombre', producto.nombre);
+            data.append('precio_costo', producto.precio_costo);
+            data.append('precio_venta', producto.precio_venta);
+            data.append('stock_actual', nuevoStock);
+            data.append('stock_minimo', producto.stock_minimo || 5);
+            data.append('categoria', producto.categoria || 'Libreria');
+            data.append('es_servicio', producto.es_servicio);
+            
+            await api.put(`/productos/${producto.id}`, data);
+            cargarProductos(); // Recargar para ver cambios
+            toast.success(`Stock ${delta > 0 ? 'aumentado' : 'reducido'}`);
+        } catch (err) {
+            toast.error("Error al actualizar stock");
+        }
     };
 
     const handleSort = (key) =>
@@ -148,7 +172,6 @@ function Inventario ()
                 let valA = a[sortConfig.key];
                 let valB = b[sortConfig.key];
 
-                // Asegurar ordenamiento numérico para precio y stock
                 if(sortConfig.key === 'precio_venta' || sortConfig.key === 'stock_actual' || sortConfig.key === 'precio_costo')
                 {
                     valA = Number(valA) || 0;
@@ -167,110 +190,141 @@ function Inventario ()
 
     return (
         <div className="space-y-6 animate-fade-in font-sans pb-12">
-            <div className={`p-6 rounded-2xl shadow-sm border transition-colors ${editId ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700'}`}>
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                        <div className={`p-2.5 rounded-lg ${editId ? 'bg-blue-200 dark:bg-blue-800 text-blue-700 dark:text-blue-100' : 'bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-300'}`}>
-                            {editId ? <Edit2 size={24} /> : <Package size={24} />}
-                        </div>
-                        <div>
-                            <h1 className={`text-xl font-bold ${editId ? 'text-blue-800 dark:text-blue-200' : 'text-gray-800 dark:text-white'}`}>
-                                {editId ? 'Editando Producto' : 'Nuevo Producto'}
-                            </h1>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Gestión de inventario y servicios</p>
-                        </div>
-                    </div>
-                    {editId && <button onClick={cancelarEdicion} className="text-gray-500 hover:text-red-500 dark:text-gray-400"><X size={16} /></button>}
+            
+            {/* Header con Botón Nuevo Producto */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                        <Package className="text-primary-600" /> Inventario
+                    </h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Gestiona tus productos y servicios</p>
                 </div>
-
-                <form onSubmit={guardarProducto} className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
-
-                    {/* Código */}
-                    <div className="md:col-span-2">
-                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Código</label>
-                        <input type="text" name="codigo_barras" value={formData.codigo_barras} onChange={handleChange} className="w-full px-3 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none focus:border-primary-500 dark:focus:border-primary-400 dark:text-white" placeholder="Escanear..." />
-                    </div>
-                    {/* Nombre */}
-                    <div className="md:col-span-4">
-                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Nombre</label>
-                        <input type="text" name="nombre" value={formData.nombre} onChange={handleChange} required className="w-full px-3 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none focus:border-primary-500 dark:focus:border-primary-400 dark:text-white" placeholder="Nombre del producto" />
-                    </div>
-                    {/* Categoría */}
-                    <div className="md:col-span-2">
-                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Categoría</label>
-                        <select name="categoria" value={formData.categoria} onChange={handleChange} className="w-full px-3 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none focus:border-primary-500 dark:focus:border-primary-400 dark:text-white">
-                            {CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                    </div>
-                    {/* Costo */}
-                    <div className="md:col-span-1">
-                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Costo</label>
-                        <input type="number" name="precio_costo" value={formData.precio_costo} onChange={handleChange} step="0.01" className="w-full px-3 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none focus:border-primary-500 dark:focus:border-primary-400 dark:text-white" placeholder="0.00" />
-                    </div>
-                    {/* Venta */}
-                    <div className="md:col-span-1">
-                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Venta</label>
-                        <input type="number" name="precio_venta" value={formData.precio_venta} onChange={handleChange} required step="0.01" className="w-full px-3 py-2.5 bg-white dark:bg-gray-700 border border-green-200 dark:border-green-800 rounded-xl outline-none focus:border-green-500 font-bold text-green-700 dark:text-green-400" placeholder="0.00" />
-                    </div>
-
-                    {/* Stock y Checkbox Servicio */}
-                    <div className="md:col-span-1">
-                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Stock</label>
-                        <input type="number" name="stock_actual" value={formData.stock_actual} onChange={handleChange} required className="w-full px-3 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none focus:border-primary-500 dark:focus:border-primary-400 dark:text-white" placeholder="0" />
-                    </div>
-
-                    {/* CHECKBOX DE SERVICIO INTEGRADO */}
-                    <div className="md:col-span-1 flex items-center h-[46px]">
-                        <label className="flex items-center gap-2 cursor-pointer select-none">
-                            <input
-                                type="checkbox"
-                                name="es_servicio"
-                                checked={formData.es_servicio}
-                                onChange={handleChange}
-                                className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700 cursor-pointer"
-                            />
-                            <span className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">¿Es Servicio?</span>
-                        </label>
-                    </div>
-
-                    {/* Alerta Mínimo */}
-                    <div className="md:col-span-2">
-                        <label className="text-xs font-bold text-red-400 uppercase ml-1">Alerta Stock Mínimo</label>
-                        <div className="relative">
-                            <AlertTriangle size={14} className="absolute left-3 top-3 text-red-300" />
-                            <input
-                                type="number" name="stock_minimo" value={formData.stock_minimo} onChange={handleChange}
-                                className="w-full pl-8 pr-3 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-xl outline-none focus:border-red-300 text-red-600 dark:text-red-300 font-medium"
-                                placeholder="5"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Imagen */}
-                    <div className="md:col-span-4">
-                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Imagen</label>
-                        <div className="flex items-center gap-3">
-                            {preview && (
-                                <img src={preview} alt="Preview" className="w-10 h-10 rounded-lg object-cover border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700" />
-                            )}
-                            <input type="file" ref={fileInputRef} accept="image/*" onChange={handleFileChange} className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm dark:text-gray-300" />
-                        </div>
-                    </div>
-
-                    {/* Botón */}
-                    <div className="md:col-span-2">
-                        <button type="submit" disabled={loading} className={`w-full font-bold py-2.5 rounded-xl shadow-md text-white ${editId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-primary-600 hover:bg-primary-700'}`}>
-                            {loading ? '...' : (editId ? 'Actualizar' : 'Agregar')}
-                        </button>
-                    </div>
-                </form>
+                <button 
+                    onClick={() => setShowModal(true)} 
+                    className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-primary-600/20 flex items-center gap-2 transition-all active:scale-95"
+                >
+                    <Plus size={20} /> Nuevo Producto
+                </button>
             </div>
+
+            {/* MODAL FORMULARIO */}
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-gray-100 dark:border-gray-700">
+                        <div className="p-6">
+                            <div className="flex items-center justify-between mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className={`p-2.5 rounded-lg ${editId ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600' : 'bg-primary-100 dark:bg-primary-900/30 text-primary-600'}`}>
+                                        {editId ? <Edit2 size={24} /> : <Package size={24} />}
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+                                            {editId ? 'Editar Producto' : 'Nuevo Producto'}
+                                        </h2>
+                                        <p className="text-sm text-gray-500">Completa los detalles del producto</p>
+                                    </div>
+                                </div>
+                                <button onClick={cerrarModal} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-500 transition-colors">
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            <form onSubmit={guardarProducto} className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+                                {/* Código */}
+                                <div className="md:col-span-2">
+                                    <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Código</label>
+                                    <input type="text" name="codigo_barras" value={formData.codigo_barras} onChange={handleChange} className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none focus:border-primary-500 dark:focus:border-primary-400 dark:text-white" placeholder="Escanear..." autoFocus />
+                                </div>
+                                {/* Nombre */}
+                                <div className="md:col-span-4">
+                                    <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Nombre</label>
+                                    <input type="text" name="nombre" value={formData.nombre} onChange={handleChange} required className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none focus:border-primary-500 dark:focus:border-primary-400 dark:text-white" placeholder="Nombre del producto" />
+                                </div>
+                                {/* Categoría */}
+                                <div className="md:col-span-2">
+                                    <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Categoría</label>
+                                    <select name="categoria" value={formData.categoria} onChange={handleChange} className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none focus:border-primary-500 dark:focus:border-primary-400 dark:text-white">
+                                        {CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                </div>
+                                {/* Costo */}
+                                <div className="md:col-span-1">
+                                    <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Costo</label>
+                                    <input type="number" name="precio_costo" value={formData.precio_costo} onChange={handleChange} step="0.01" className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none focus:border-primary-500 dark:focus:border-primary-400 dark:text-white" placeholder="0.00" />
+                                </div>
+                                {/* Venta */}
+                                <div className="md:col-span-1">
+                                    <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Venta</label>
+                                    <input type="number" name="precio_venta" value={formData.precio_venta} onChange={handleChange} required step="0.01" className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-green-200 dark:border-green-800 rounded-xl outline-none focus:border-green-500 font-bold text-green-700 dark:text-green-400" placeholder="0.00" />
+                                </div>
+
+                                {/* Stock y Checkbox Servicio */}
+                                <div className="md:col-span-1">
+                                    <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Stock</label>
+                                    <input type="number" name="stock_actual" value={formData.stock_actual} onChange={handleChange} required className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none focus:border-primary-500 dark:focus:border-primary-400 dark:text-white" placeholder="0" />
+                                </div>
+
+                                {/* CHECKBOX DE SERVICIO INTEGRADO */}
+                                <div className="md:col-span-1 flex items-center h-[46px]">
+                                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                                        <input
+                                            type="checkbox"
+                                            name="es_servicio"
+                                            checked={formData.es_servicio}
+                                            onChange={handleChange}
+                                            className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700 cursor-pointer"
+                                        />
+                                        <span className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">¿Es Servicio?</span>
+                                    </label>
+                                </div>
+
+                                {/* Alerta Mínimo */}
+                                <div className="md:col-span-2">
+                                    <label className="text-xs font-bold text-red-400 uppercase ml-1">Alerta Stock Mínimo</label>
+                                    <div className="relative">
+                                        <AlertTriangle size={14} className="absolute left-3 top-3 text-red-300" />
+                                        <input
+                                            type="number" name="stock_minimo" value={formData.stock_minimo} onChange={handleChange}
+                                            className="w-full pl-8 pr-3 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-xl outline-none focus:border-red-300 text-red-600 dark:text-red-300 font-medium"
+                                            placeholder="5"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Imagen */}
+                                <div className="md:col-span-4">
+                                    <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Imagen</label>
+                                    <div className="flex items-center gap-3">
+                                        {preview && (
+                                            <img src={preview} alt="Preview" className="w-10 h-10 rounded-lg object-cover border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700" />
+                                        )}
+                                        <input type="file" ref={fileInputRef} accept="image/*" onChange={handleFileChange} className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm dark:text-gray-300" />
+                                    </div>
+                                </div>
+
+                                {/* Botones Acción */}
+                                <div className="md:col-span-6 flex gap-3 mt-4">
+                                    <button type="button" onClick={cerrarModal} className="flex-1 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                        Cancelar
+                                    </button>
+                                    <button type="submit" disabled={loading} className={`flex-1 font-bold py-3 rounded-xl shadow-md text-white ${editId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-primary-600 hover:bg-primary-700'}`}>
+                                        {loading ? 'Guardando...' : (editId ? 'Actualizar Producto' : 'Guardar Producto')}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* TABLA */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col h-[600px]">
                 <div className="p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex items-center justify-between gap-4">
-                    <input type="text" placeholder="Buscar..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full p-2 bg-white dark:bg-gray-700 border dark:border-gray-600 rounded-lg dark:text-white outline-none focus:border-primary-500" />
-                    <div className="text-xs font-bold text-gray-400">{productosFiltrados.length} Items</div>
+                    <div className="relative w-full max-w-md">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <input type="text" placeholder="Buscar por nombre o código..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl dark:text-white outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100" />
+                    </div>
+                    <div className="text-xs font-bold text-gray-400 whitespace-nowrap">{productosFiltrados.length} Items</div>
                 </div>
 
                 <div className="overflow-y-auto flex-1">
@@ -335,14 +389,31 @@ function Inventario ()
                                     </td>
                                     <td className="p-3">
                                         <div className="font-medium text-gray-800 dark:text-gray-200">{p.nombre}</div>
-                                        {/* Mostramos si es servicio en el listado */}
                                         <div className="flex gap-2">
                                             <span className="text-xs text-gray-500 dark:text-gray-500">{p.codigo_barras}</span>
                                             {p.es_servicio && <span className="text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1 rounded border border-purple-200 dark:border-purple-800">SERVICIO</span>}
                                         </div>
                                     </td>
                                     <td className="p-3 text-right font-bold dark:text-gray-200">${p.precio_venta}</td>
-                                    <td className="p-3 text-center dark:text-gray-300">{p.es_servicio ? '∞' : p.stock_actual}</td>
+                                    
+                                    {/* COLUMNA STOCK CON BOTONES RÁPIDOS */}
+                                    <td className="p-3 text-center">
+                                        {p.es_servicio ? (
+                                            <span className="text-gray-400">∞</span>
+                                        ) : (
+                                            <div className="flex items-center justify-center gap-2">
+                                                <button onClick={() => ajustarStock(p, -1)} className="w-6 h-6 flex items-center justify-center rounded bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-600 transition-colors">
+                                                    <Minus size={12} />
+                                                </button>
+                                                <span className={`font-bold w-8 ${p.stock_actual <= (p.stock_minimo || 5) ? 'text-red-500' : 'text-gray-700 dark:text-gray-300'}`}>
+                                                    {p.stock_actual}
+                                                </span>
+                                                <button onClick={() => ajustarStock(p, 1)} className="w-6 h-6 flex items-center justify-center rounded bg-gray-100 hover:bg-green-100 text-gray-600 hover:text-green-600 transition-colors">
+                                                    <Plus size={12} />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </td>
 
                                     <td className="p-3 text-center">
                                         {p.es_servicio ? (
@@ -359,8 +430,8 @@ function Inventario ()
                                     </td>
 
                                     <td className="p-3 flex justify-center gap-2">
-                                        <button onClick={() => iniciarEdicion(p)} className="text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 p-1 rounded"><Edit2 size={16} /></button>
-                                        {esAdmin && <button onClick={() => eliminarProducto(p.id)} className="text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded"><Trash2 size={16} /></button>}
+                                        <button onClick={() => iniciarEdicion(p)} className="text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 p-1.5 rounded-lg transition-colors"><Edit2 size={18} /></button>
+                                        {esAdmin && <button onClick={() => eliminarProducto(p.id)} className="text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 p-1.5 rounded-lg transition-colors"><Trash2 size={18} /></button>}
                                     </td>
                                 </tr>
                             ))}
