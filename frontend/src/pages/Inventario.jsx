@@ -1,7 +1,7 @@
 import {useState, useEffect, useRef} from 'react';
 import api from '../api';
 import toast from 'react-hot-toast';
-import {Package, Search, Plus, Trash2, Edit2, AlertCircle, Barcode, DollarSign, Image as ImageIcon, X, Save, Tag, AlertTriangle, Layers} from 'lucide-react';
+import {Package, Search, Plus, Trash2, Edit2, AlertCircle, Barcode, DollarSign, Image as ImageIcon, X, Save, Tag, AlertTriangle, Layers, ArrowUpDown, ArrowUp, ArrowDown} from 'lucide-react';
 
 function Inventario ()
 {
@@ -12,6 +12,7 @@ function Inventario ()
     const [editId, setEditId] = useState(null);
     const [esAdmin, setEsAdmin] = useState(false);
     const [preview, setPreview] = useState(null);
+    const [sortConfig, setSortConfig] = useState({key: 'nombre', direction: 'asc'});
 
     const CATEGORIAS = ["Libreria", "Fotocopias", "Cotillon", "Frescos", "Golosinas"];
 
@@ -125,10 +126,44 @@ function Inventario ()
         });
     };
 
-    const productosFiltrados = productos.filter(p =>
-        p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-        (p.codigo_barras && p.codigo_barras.includes(busqueda))
-    );
+    const handleSort = (key) =>
+    {
+        let direction = 'asc';
+        if(sortConfig.key === key && sortConfig.direction === 'asc')
+        {
+            direction = 'desc';
+        }
+        setSortConfig({key, direction});
+    };
+
+    const productosFiltrados = productos
+        .filter(p =>
+            p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+            (p.codigo_barras && p.codigo_barras.includes(busqueda))
+        )
+        .sort((a, b) =>
+        {
+            if(sortConfig.key)
+            {
+                let valA = a[sortConfig.key];
+                let valB = b[sortConfig.key];
+
+                // Asegurar ordenamiento numérico para precio y stock
+                if(sortConfig.key === 'precio_venta' || sortConfig.key === 'stock_actual' || sortConfig.key === 'precio_costo')
+                {
+                    valA = Number(valA) || 0;
+                    valB = Number(valB) || 0;
+                } else if(typeof valA === 'string')
+                {
+                    valA = valA.toLowerCase();
+                    valB = valB ? valB.toLowerCase() : '';
+                }
+
+                if(valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+                if(valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+            }
+            return 0;
+        });
 
     return (
         <div className="space-y-6 animate-fade-in font-sans pb-12">
@@ -243,9 +278,45 @@ function Inventario ()
                         <thead className="bg-gray-50 dark:bg-gray-700/50 sticky top-0 z-10 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
                             <tr>
                                 <th className="p-3 w-16">Img</th>
-                                <th className="p-3">Producto</th>
-                                <th className="p-3 text-right">Precio</th>
-                                <th className="p-3 text-center">Stock</th>
+                                <th
+                                    className="p-3 cursor-pointer group hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                    onClick={() => handleSort('nombre')}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        Producto
+                                        {sortConfig.key === 'nombre' ? (
+                                            sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />
+                                        ) : (
+                                            <ArrowUpDown size={14} className="opacity-0 group-hover:opacity-50" />
+                                        )}
+                                    </div>
+                                </th>
+                                <th
+                                    className="p-3 text-right cursor-pointer group hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                    onClick={() => handleSort('precio_venta')}
+                                >
+                                    <div className="flex items-center justify-end gap-1">
+                                        Precio
+                                        {sortConfig.key === 'precio_venta' ? (
+                                            sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />
+                                        ) : (
+                                            <ArrowUpDown size={14} className="opacity-0 group-hover:opacity-50" />
+                                        )}
+                                    </div>
+                                </th>
+                                <th
+                                    className="p-3 text-center cursor-pointer group hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                    onClick={() => handleSort('stock_actual')}
+                                >
+                                    <div className="flex items-center justify-center gap-1">
+                                        Stock
+                                        {sortConfig.key === 'stock_actual' ? (
+                                            sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />
+                                        ) : (
+                                            <ArrowUpDown size={14} className="opacity-0 group-hover:opacity-50" />
+                                        )}
+                                    </div>
+                                </th>
                                 <th className="p-3 text-center">Estado</th>
                                 <th className="p-3 text-center">Acciones</th>
                             </tr>
