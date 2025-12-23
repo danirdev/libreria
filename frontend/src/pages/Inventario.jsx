@@ -86,6 +86,22 @@ function Inventario ()
     const guardarProducto = async (e) =>
     {
         e.preventDefault();
+
+        // --- RECOMENDACIÓN 1: Validar Precios ---
+        // Evita perder dinero por errores de tipeo
+        if (parseFloat(formData.precio_venta) < parseFloat(formData.precio_costo)) {
+            if (!confirm("⚠️ ¡CUIDADO! El precio de venta es MENOR al costo.\n¿Estás seguro de guardar así?")) {
+                return; // Cancela el guardado
+            }
+        }
+
+        // --- RECOMENDACIÓN 2: Validar Imagen ---
+        // Evita que la base de datos se llene de archivos pesados
+        if (formData.imagen && formData.imagen.size > 2 * 1024 * 1024) { // 2MB
+            toast.error("La imagen es muy pesada. Máximo 2MB.");
+            return;
+        }
+
         setLoading(true);
 
         const guardarPromesa = new Promise(async (resolve, reject) =>
@@ -95,8 +111,17 @@ function Inventario ()
                 const data = new FormData();
                 Object.keys(formData).forEach(key =>
                 {
-                    if(key === 'imagen' && formData[key]) data.append(key, formData[key]);
-                    else if(key !== 'imagen') data.append(key, formData[key]);
+                    if(key === 'imagen' && formData[key]) {
+                        data.append(key, formData[key]);
+                    }
+                    else if(key === 'nombre') {
+                        // --- RECOMENDACIÓN 3: Estandarizar Texto ---
+                        // Guarda siempre en mayúsculas para mantener orden
+                        data.append(key, formData.nombre.toUpperCase()); 
+                    }
+                    else if(key !== 'imagen') {
+                        data.append(key, formData[key]);
+                    }
                 });
 
                 if(editId) await api.put(`/productos/${editId}`, data);
@@ -105,13 +130,17 @@ function Inventario ()
                 cerrarModal();
                 cargarProductos();
                 resolve();
-            } catch(err) {reject(err);} finally {setLoading(false);}
+            } catch(err) {
+                // Si el error viene del backend (ej: código duplicado)
+                console.error(err);
+                reject(err);
+            } finally {setLoading(false);}
         });
 
         toast.promise(guardarPromesa, {
             loading: 'Guardando...',
             success: <b>{editId ? '¡Actualizado!' : '¡Creado!'}</b>,
-            error: <b>Error al guardar.</b>,
+            error: <b>Error: ¿Quizás el código ya existe?</b>,
         });
     };
 
