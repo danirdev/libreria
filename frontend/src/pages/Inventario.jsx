@@ -1,7 +1,8 @@
 import {useState, useEffect, useRef} from 'react';
 import api from '../api';
 import toast from 'react-hot-toast';
-import {Package, Search, Plus, Trash2, Edit2, AlertCircle, Barcode, DollarSign, Image as ImageIcon, X, Save, Tag, AlertTriangle, Layers, ArrowUpDown, ArrowUp, ArrowDown, Minus} from 'lucide-react';
+// Agregamos 'Copy' a los iconos importados
+import {Package, Search, Plus, Trash2, Edit2, AlertCircle, Barcode, DollarSign, Image as ImageIcon, X, Save, Tag, AlertTriangle, Layers, ArrowUpDown, ArrowUp, ArrowDown, Minus, Copy} from 'lucide-react';
 
 function Inventario ()
 {
@@ -9,18 +10,34 @@ function Inventario ()
     const [busqueda, setBusqueda] = useState('');
     const [loading, setLoading] = useState(false);
     const fileInputRef = useRef(null);
+    // Referencia para enfocar el input de código tras guardar
+    const codigoInputRef = useRef(null); 
     const [editId, setEditId] = useState(null);
     const [esAdmin, setEsAdmin] = useState(false);
     const [preview, setPreview] = useState(null);
     const [sortConfig, setSortConfig] = useState({key: 'nombre', direction: 'asc'});
-    const [showModal, setShowModal] = useState(false); // Estado para el modal
+    const [showModal, setShowModal] = useState(false);
 
-    const CATEGORIAS = ["Libreria", "Fotocopias", "Cotillon", "Frescos", "Golosinas"];
+    // --- CAMBIO 1: Categorías más detalladas para tu negocio ---
+    const CATEGORIAS = [
+        "Papelería",      // Afiches, cartulinas, hojas
+        "Escritura",      // Lapiceras, lápices, marcadores
+        "Adhesivos",      // Plasticolas, cintas
+        "Arte",           // Pinturas, pinceles
+        "Cuadernos",      // Cuadernos, libretas
+        "Carpetas",       // Carpetas, folios
+        "Mochilas",       // Mochilas, cartucheras
+        "Regalos",        // Juguetes, adornos
+        "Cotillon",       // Cumpleaños
+        "Fotocopias",     // Servicios de impresión
+        "Golosinas",      // Kiosco
+        "Varios"
+    ];
 
     const [formData, setFormData] = useState({
         codigo_barras: '', nombre: '', precio_costo: '', precio_venta: '',
         stock_actual: '', stock_minimo: 5,
-        categoria: 'Libreria', es_servicio: false, imagen: null
+        categoria: 'Papelería', es_servicio: false, imagen: null
     });
 
     useEffect(() =>
@@ -64,84 +81,101 @@ function Inventario ()
             precio_venta: producto.precio_venta,
             stock_actual: producto.stock_actual,
             stock_minimo: producto.stock_minimo || 5,
-            categoria: producto.categoria || 'Libreria',
+            categoria: producto.categoria || 'Papelería',
             es_servicio: producto.es_servicio || false,
             imagen: null
         });
         setPreview(producto.imagen_url);
-        setShowModal(true); // Abrir modal
+        setShowModal(true);
+    };
+
+    // --- CAMBIO 2: Función para Duplicar Producto ---
+    const duplicarProducto = (producto) => {
+        setEditId(null); // Es un nuevo producto
+        setFormData({
+            codigo_barras: '', // Limpiamos código para evitar conflictos
+            nombre: `${producto.nombre} (Copia)`,
+            precio_costo: producto.precio_costo,
+            precio_venta: producto.precio_venta,
+            stock_actual: producto.stock_actual,
+            stock_minimo: producto.stock_minimo || 5,
+            categoria: producto.categoria || 'Papelería',
+            es_servicio: producto.es_servicio || false,
+            imagen: null // La imagen no se copia automáticamente para simplificar
+        });
+        setPreview(producto.imagen_url); // Mostramos la imagen anterior como referencia
+        setShowModal(true);
+        toast("Producto duplicado. Edita los detalles y guarda.", { icon: '📋' });
     };
 
     const cerrarModal = () => {
         setEditId(null);
         setFormData({
             codigo_barras: '', nombre: '', precio_costo: '', precio_venta: '',
-            stock_actual: '', stock_minimo: 5, categoria: 'Libreria', es_servicio: false, imagen: null
+            stock_actual: '', stock_minimo: 5, categoria: 'Papelería', es_servicio: false, imagen: null
         });
         setPreview(null);
         if(fileInputRef.current) fileInputRef.current.value = "";
         setShowModal(false);
     };
 
-    const guardarProducto = async (e) =>
-    {
-        e.preventDefault();
-
-        // --- RECOMENDACIÓN 1: Validar Precios ---
-        // Evita perder dinero por errores de tipeo
+    // --- CAMBIO 3: Lógica de guardado flexible (Cerrar o Continuar) ---
+    const procesarGuardado = async (cerrarAlTerminar = true) => {
+        // Validaciones
         if (parseFloat(formData.precio_venta) < parseFloat(formData.precio_costo)) {
-            if (!confirm("⚠️ ¡CUIDADO! El precio de venta es MENOR al costo.\n¿Estás seguro de guardar así?")) {
-                return; // Cancela el guardado
-            }
+            if (!confirm("⚠️ ¡CUIDADO! El precio de venta es MENOR al costo.\n¿Estás seguro de guardar así?")) return;
         }
-
-        // --- RECOMENDACIÓN 2: Validar Imagen ---
-        // Evita que la base de datos se llene de archivos pesados
-        if (formData.imagen && formData.imagen.size > 2 * 1024 * 1024) { // 2MB
+        if (formData.imagen && formData.imagen.size > 2 * 1024 * 1024) {
             toast.error("La imagen es muy pesada. Máximo 2MB.");
             return;
         }
 
         setLoading(true);
+        try {
+            const data = new FormData();
+            Object.keys(formData).forEach(key => {
+                if(key === 'imagen' && formData[key]) data.append(key, formData[key]);
+                else if(key === 'nombre') data.append(key, formData.nombre.toUpperCase());
+                else if(key !== 'imagen') data.append(key, formData[key]);
+            });
 
-        const guardarPromesa = new Promise(async (resolve, reject) =>
-        {
-            try
-            {
-                const data = new FormData();
-                Object.keys(formData).forEach(key =>
-                {
-                    if(key === 'imagen' && formData[key]) {
-                        data.append(key, formData[key]);
-                    }
-                    else if(key === 'nombre') {
-                        // --- RECOMENDACIÓN 3: Estandarizar Texto ---
-                        // Guarda siempre en mayúsculas para mantener orden
-                        data.append(key, formData.nombre.toUpperCase()); 
-                    }
-                    else if(key !== 'imagen') {
-                        data.append(key, formData[key]);
-                    }
-                });
+            if(editId) await api.put(`/productos/${editId}`, data);
+            else await api.post('/productos', data);
 
-                if(editId) await api.put(`/productos/${editId}`, data);
-                else await api.post('/productos', data);
-
+            cargarProductos();
+            
+            if (cerrarAlTerminar) {
                 cerrarModal();
-                cargarProductos();
-                resolve();
-            } catch(err) {
-                // Si el error viene del backend (ej: código duplicado)
-                console.error(err);
-                reject(err);
-            } finally {setLoading(false);}
-        });
+                toast.success(editId ? '¡Actualizado!' : '¡Creado!');
+            } else {
+                // Resetear formulario pero mantener categoría para carga rápida
+                const catActual = formData.categoria;
+                setFormData({
+                    codigo_barras: '', nombre: '', precio_costo: '', precio_venta: '',
+                    stock_actual: '', stock_minimo: 5, 
+                    categoria: catActual, // Mantiene la categoría
+                    es_servicio: false, imagen: null
+                });
+                setPreview(null);
+                setEditId(null); // Asegurar que el siguiente es nuevo
+                if(fileInputRef.current) fileInputRef.current.value = "";
+                
+                toast.success("¡Guardado! Listo para el siguiente.");
+                // Enfocar el input de código de barras para seguir escaneando
+                setTimeout(() => codigoInputRef.current?.focus(), 100);
+            }
 
-        toast.promise(guardarPromesa, {
-            loading: 'Guardando...',
-            success: <b>{editId ? '¡Actualizado!' : '¡Creado!'}</b>,
-            error: <b>Error: ¿Quizás el código ya existe?</b>,
-        });
+        } catch(err) {
+            console.error(err);
+            toast.error("Error al guardar. ¿Código duplicado?");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const guardarProducto = (e) => {
+        e.preventDefault();
+        procesarGuardado(true); // Por defecto guarda y cierra
     };
 
     const eliminarProducto = async (id) =>
@@ -154,7 +188,6 @@ function Inventario ()
         });
     };
 
-    // Función para ajuste rápido de stock
     const ajustarStock = async (producto, delta) => {
         if (producto.es_servicio) return;
         const nuevoStock = parseInt(producto.stock_actual || 0) + delta;
@@ -168,11 +201,11 @@ function Inventario ()
             data.append('precio_venta', producto.precio_venta);
             data.append('stock_actual', nuevoStock);
             data.append('stock_minimo', producto.stock_minimo || 5);
-            data.append('categoria', producto.categoria || 'Libreria');
+            data.append('categoria', producto.categoria || 'Papelería');
             data.append('es_servicio', producto.es_servicio);
             
             await api.put(`/productos/${producto.id}`, data);
-            cargarProductos(); // Recargar para ver cambios
+            cargarProductos();
             toast.success(`Stock ${delta > 0 ? 'aumentado' : 'reducido'}`);
         } catch (err) {
             toast.error("Error al actualizar stock");
@@ -262,7 +295,12 @@ function Inventario ()
                                 {/* Código */}
                                 <div className="md:col-span-2">
                                     <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase ml-1">Código</label>
-                                    <input type="text" name="codigo_barras" value={formData.codigo_barras} onChange={handleChange} className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none focus:border-primary-500 dark:focus:border-primary-400 dark:text-white" placeholder="Escanear..." autoFocus />
+                                    <input 
+                                        ref={codigoInputRef}
+                                        type="text" name="codigo_barras" value={formData.codigo_barras} onChange={handleChange} 
+                                        className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none focus:border-primary-500 dark:focus:border-primary-400 dark:text-white" 
+                                        placeholder="Escanear..." autoFocus 
+                                    />
                                 </div>
                                 {/* Nombre */}
                                 <div className="md:col-span-4">
@@ -333,11 +371,24 @@ function Inventario ()
 
                                 {/* Botones Acción */}
                                 <div className="md:col-span-6 flex gap-3 mt-4">
-                                    <button type="button" onClick={cerrarModal} className="flex-1 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                    <button type="button" onClick={cerrarModal} className="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                                         Cancelar
                                     </button>
+                                    
+                                    {/* Botón Guardar y Nuevo (Solo al crear) */}
+                                    {!editId && (
+                                        <button 
+                                            type="button" 
+                                            onClick={() => procesarGuardado(false)} 
+                                            disabled={loading}
+                                            className="flex-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <Plus size={18} /> Guardar y Agregar Otro
+                                        </button>
+                                    )}
+
                                     <button type="submit" disabled={loading} className={`flex-1 font-bold py-3 rounded-xl shadow-md text-white ${editId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-primary-600 hover:bg-primary-700'}`}>
-                                        {loading ? 'Guardando...' : (editId ? 'Actualizar Producto' : 'Guardar Producto')}
+                                        {loading ? 'Guardando...' : (editId ? 'Actualizar y Cerrar' : 'Guardar y Cerrar')}
                                     </button>
                                 </div>
                             </form>
@@ -421,6 +472,8 @@ function Inventario ()
                                         <div className="flex gap-2">
                                             <span className="text-xs text-gray-500 dark:text-gray-500">{p.codigo_barras}</span>
                                             {p.es_servicio && <span className="text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1 rounded border border-purple-200 dark:border-purple-800">SERVICIO</span>}
+                                            {/* Mostrar Categoría pequeña */}
+                                            <span className="text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-1 rounded border border-gray-200 dark:border-gray-600">{p.categoria}</span>
                                         </div>
                                     </td>
                                     <td className="p-3 text-right font-bold dark:text-gray-200">${p.precio_venta}</td>
@@ -459,8 +512,10 @@ function Inventario ()
                                     </td>
 
                                     <td className="p-3 flex justify-center gap-2">
-                                        <button onClick={() => iniciarEdicion(p)} className="text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 p-1.5 rounded-lg transition-colors"><Edit2 size={18} /></button>
-                                        {esAdmin && <button onClick={() => eliminarProducto(p.id)} className="text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 p-1.5 rounded-lg transition-colors"><Trash2 size={18} /></button>}
+                                        <button onClick={() => iniciarEdicion(p)} className="text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 p-1.5 rounded-lg transition-colors" title="Editar"><Edit2 size={18} /></button>
+                                        {/* Botón Duplicar */}
+                                        <button onClick={() => duplicarProducto(p)} className="text-orange-500 hover:bg-orange-100 dark:hover:bg-orange-900/30 p-1.5 rounded-lg transition-colors" title="Duplicar"><Copy size={18} /></button>
+                                        {esAdmin && <button onClick={() => eliminarProducto(p.id)} className="text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 p-1.5 rounded-lg transition-colors" title="Eliminar"><Trash2 size={18} /></button>}
                                     </td>
                                 </tr>
                             ))}
